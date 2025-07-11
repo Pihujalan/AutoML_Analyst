@@ -161,3 +161,18 @@ with open("final_column_types.json", "r") as f:
 
 print("Category columns: ", category_cols)
 print("Ordinal columns: ", ordinal_cols)               
+
+# 🚨 Final Missing Value Check after conversions
+for col in df.columns[df.isnull().any()]:
+    if is_numeric_dtype(df[col]):
+        mean_val = df[col].mean()
+        df[col] = df[col].fillna(mean_val)
+        print(f"[FINAL] Filled missing values in numeric column '{col}' with mean: {mean_val}")
+    else:
+        df[col] = df[col].fillna("Unknown")
+        print(f"[FINAL] Filled missing values in text column '{col}' with 'Unknown'")
+
+
+
+df.to_csv("cleaned_input.csv", index=False)
+print("✅ Cleaned data saved to 'cleaned_input.csv'")
