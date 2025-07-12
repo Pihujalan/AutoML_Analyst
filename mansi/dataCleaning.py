@@ -101,6 +101,44 @@ for col in df.columns:
         local_guess = "Category"
     else:
         local_guess = "Free Text"
+     # 🎯 Filtering: Decide if this column really needs GPT verification
+    should_verify = False  # Default to skipping unless conditions met
+
+    # Skip if datetime
+    if pd.api.types.is_datetime64_any_dtype(df[col]):
+        should_verify = False
+
+    # Skip if column name has "date" or "year" and it's parsed as datetime
+    elif ("date" in col.lower() or "year" in col.lower()) and pd.api.types.is_datetime64_any_dtype(df[col]):
+        should_verify = False
+
+    # Skip if unique = total rows (likely ID)
+    elif unique == len(df[col]):
+        should_verify = False
+
+    # ✅ Check if logic might be wrong — these are edge cases
+    elif dtype in ['int64', 'float64'] and 5 < unique <= 25:
+        should_verify = True  # Could be ordinal or numeric — confusing
+
+    elif dtype.name == 'category' and 10 < unique <= 30:
+        should_verify = True  # Could be free text vs. category
+
+    elif dtype.name == 'category' and unique > 30:
+        should_verify = False  # Too many values — assume free text or ID
+
+    elif dtype in ['int64', 'float64'] and unique <= 5:
+        should_verify = True  # Could be ordinal — worth verifying
+
+    elif dtype == object and unique <= 5:
+        should_verify = True  # Could be Category/Ordinal — check
+
+    else:
+        should_verify = False  # Everything else — trust logic
+
+    if not should_verify:
+        final_types[col] = "datetime" if local_guess.lower() == "time" else local_guess
+        print(f"🧠 Skipped GPT for column '{col}', used local guess: {local_guess}")
+        continue
 
     gpt_guess = verify_with_gpt(col, sample_values, local_guess)
 
