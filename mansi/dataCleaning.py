@@ -31,7 +31,6 @@ class GPTClientRotator:
                 client = self.get_client()
                 return client.chat.completions.create(**kwargs)
             except Exception as e:
-                print(f"⚠️ Error with key {self.index + 1}: {e}")
                 self.rotate_key()
 
 # 🧠 Initialize rotator
