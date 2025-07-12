@@ -4,12 +4,40 @@ import json
 from pandas.api.types import is_numeric_dtype, is_integer_dtype
 from openai import OpenAI
 
-# 🧠 Setup OpenRouter client
-client = OpenAI(
-    api_key="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",
-    base_url="https://openrouter.ai/api/v1"
-)
+# 🔑 Multiple API keys: Mansi + Yours
+OPENROUTER_KEYS = [
+    "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",  # Mansi’s
+    "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"   # Yours
+]
 
+# 🔁 Rotating GPT client
+class GPTClientRotator:
+    def __init__(self, api_keys, base_url="https://openrouter.ai/api/v1"):
+        self.api_keys = api_keys
+        self.base_url = base_url
+        self.index = 0
+
+    def get_client(self):
+        return OpenAI(api_key=self.api_keys[self.index], base_url=self.base_url)
+
+    def rotate_key(self):
+        self.index += 1
+        if self.index >= len(self.api_keys):
+            raise Exception("❌ All API keys exhausted or failed.")
+
+    def chat_completion(self, **kwargs):
+        while True:
+            try:
+                client = self.get_client()
+                return client.chat.completions.create(**kwargs)
+            except Exception as e:
+                print(f"⚠️ Error with key {self.index + 1}: {e}")
+                self.rotate_key()
+
+# 🧠 Initialize rotator
+rotator = GPTClientRotator(OPENROUTER_KEYS)
+
+# 🔍 Column verifier using GPT
 def verify_with_gpt(col_name, sample_values, local_guess):
     prompt = (
         f"I am analyzing a dataset. One column is named '{col_name}', "
@@ -19,7 +47,7 @@ def verify_with_gpt(col_name, sample_values, local_guess):
         f"My program thinks it's: {local_guess}. Just reply with only the type."
     )
     try:
-        response = client.chat.completions.create(
+        response = rotator.chat_completion(
             model="mistralai/mistral-7b-instruct:free",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=20,
@@ -27,8 +55,9 @@ def verify_with_gpt(col_name, sample_values, local_guess):
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
-        print(f"❌ Error verifying with GPT for column '{col_name}':", e)
+        print(f"❌ Final GPT error (all keys failed) for column '{col_name}':", e)
         return None
+
 
 # 📥 Load dataset
 df = pd.read_csv("input.csv")
