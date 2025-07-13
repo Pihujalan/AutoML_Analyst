@@ -1,41 +1,116 @@
 import streamlit as st
 import pandas as pd
 import os
-def center(text, tag="p", size="16px"):
-    st.markdown(
-        f"<{tag} style='text-align: center; font-size:{size};'>{text}</{tag}>",
-        unsafe_allow_html=True
+
+# Page setup
+st.set_page_config(page_title="AutoML Analyst", layout="wide")
+
+# Session state setup
+if "confirmed" not in st.session_state:
+    st.session_state.confirmed = False
+if "df" not in st.session_state:
+    st.session_state.df = None
+
+st.title("AutoML Analyst")
+
+# ✅ Only run this block if dataset not confirmed
+if not st.session_state.confirmed:
+
+    # User input method selection
+    upload_method = st.radio(
+        "Choose your data input method:",
+        ["Upload CSV file", "Paste Google Sheet link"],
+        index=0
     )
 
-def left(text, tag="p", size="16px"):
-    st.markdown(
-        f"<{tag} style='text-align: left; font-size:{size};'>{text}</{tag}>",
-        unsafe_allow_html=True
-    )
+    # 📁 CSV Upload Option
+    if upload_method == "Upload CSV file":
+        st.subheader("Upload your CSV file:")
+        uploaded_file = st.file_uploader("Choose a CSV file", type=["csv"])
 
-def right(text, tag="p", size="16px"):
-    st.markdown(
-        f"<{tag} style='text-align: right; font-size:{size};'>{text}</{tag}>",
-        unsafe_allow_html=True
-    )
+        if uploaded_file is not None:
+            df = pd.read_csv(uploaded_file)
+            st.session_state.df = df
 
-st.set_page_config(page_title="  AutoML  ", layout="wide")
+            os.makedirs("data", exist_ok=True)
+            df.to_csv("data/input.csv", index=False)
 
-center("AutoML Analyst ",tag="h1", size= "40px")
-left("Upload your CSV dataset to begin.")
-right("Upload a CSV file", tag="p",size="12px")
-uploaded_file = st.file_uploader("", type=["csv"])
+            st.success(" File uploaded and saved successfully.")
+            st.subheader("Preview of your data:")
+            st.dataframe(df.head(10))
 
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
-    
-    # Save uploaded file to /data/input.csv
-    os.makedirs("data", exist_ok=True)
-    df.to_csv("data/input.csv", index=False)
+            if st.button(" Yes, this is my dataset"):
+                st.session_state.confirmed = True
+                st.rerun()
+            if st.button(" No, I want to upload again"):
+                st.session_state.df = None
+                st.rerun()
 
-    st.success("✅ File uploaded and saved successfully.")
-    st.subheader("Preview of your data:")
-    st.dataframe(df.head(10))
+        else:
+            st.info("Please upload a CSV file to proceed.")
 
-else:
-    st.info("Please upload a CSV file to start.")
+    # 🌐 Google Sheets Link Option
+    else:
+        st.subheader("Paste your Google Sheet link:")
+
+        with st.expander("How to load your Google Sheet into the app"):
+            st.markdown("""
+            1. ✅ Make sure your sheet has a proper **header row**
+                - First row should have column names like: Name, Age, Gender, etc.
+
+            2. ✅ Keep your data in the correct **tab (worksheet)**
+                - For example: Sheet1, Data, or EmployeeInfo
+                - You will need to enter the exact tab name in the app
+
+            3. ✅ Share the Google Sheet with our bot email:
+                📧 your-bot-service-account@your-project-id.iam.gserviceaccount.com
+                - Open your sheet → Click "Share" → Paste the email above → Click "Send"
+
+            4. ✅ Copy the **full Google Sheet link** from the browser address bar:
+                 Example: https://docs.google.com/spreadsheets/d/your-sheet-id/edit#gid=0
+
+            5. ✅ In the app:
+                - Paste the link in the input field
+                - Type the sheet/tab name
+                - Click "Load Sheet" to begin
+
+                """)
+
+        sheet_url = st.text_input("Enter Google Sheet URL", value="", key="no_suggest_url")
+
+        if sheet_url:
+            try:
+                if "docs.google.com" in sheet_url and "edit" in sheet_url:
+                    # Convert to CSV link
+                    csv_url = sheet_url.split("/edit")[0] + "/export?format=csv"
+                    df = pd.read_csv(csv_url)
+                    st.session_state.df = df
+
+                    os.makedirs("data", exist_ok=True)
+                    df.to_csv("data/input.csv", index=False)
+
+                    st.success(" Google Sheet fetched and saved successfully.")
+                    st.subheader("Preview of your data:")
+                    st.dataframe(df.head(10))
+
+                    if st.button("Yes, this is my dataset"):
+                        st.session_state.confirmed = True
+                        st.rerun()
+                    if st.button(" No, I want to upload again"):
+                        st.session_state.df = None
+                        st.rerun()
+                else:
+                    st.error(" Invalid Google Sheet URL.")
+            except Exception as e:
+                st.error(f" Failed to load Google Sheet: {e}")
+
+# ✅ Final dataset confirmation section (runs always after)
+if st.session_state.confirmed and st.session_state.df is not None:
+    st.success("Dataset confirmed!")
+    st.subheader("Your uploaded dataset:")
+    st.dataframe(st.session_state.df.head(10))
+# 🔙 Add a back button to allow re-upload
+    if st.button("back"):
+        st.session_state.confirmed = False
+        st.session_state.df = None
+        st.rerun()

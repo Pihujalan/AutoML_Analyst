@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-df=pd.read_csv("cleaned_input.csv")
+
+df = pd.read_csv("encoded_input.csv")
 print("Available columns in the dataset: ")
 print(df.columns.tolist())
 target_col = input("\n Enter the name of the target column from the above list: ")
