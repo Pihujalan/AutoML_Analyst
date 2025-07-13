@@ -6,6 +6,6 @@
   "age": "Numeric",
   "gender": "Category",
   "everbenched": "Category",
-  "experienceincurrentdomain": "ordinal",
+  "experienceincurrentdomain": "Numeric",
   "leaveornot": "Category"
 }
