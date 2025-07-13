@@ -1,16 +1,3 @@
-'''
-PRACTICE CODE
-import pandas as pd
-def load_dataset():
-    df = pd.read_csv("Employee_dataset.csv")
-    print("Preview of dataset:")
-    print(df.head())
-    df.to_csv("input.csv", index=False)
-    print("Data saved as input.csv")
-
-load_dataset()
-
-'''
 import pandas as pd
 
 def load_dataset(source_type, path_or_url, sheet_name=None):
