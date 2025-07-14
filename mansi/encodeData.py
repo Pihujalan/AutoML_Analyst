@@ -8,6 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 
 # Load dataset
 df = pd.read_csv("cleaned_input.csv")
+
 print("Original shape:", df.shape)
 
 # Ask for target column (not needed for label encoding, but kept for compatibility)
