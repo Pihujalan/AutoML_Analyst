@@ -9,10 +9,10 @@ import seaborn as sns
 
 # Step 2: Load the training and testing datasets
 print("📥 Loading training and testing datasets...")
-X_train = pd.read_csv("X_train.csv")
-X_test = pd.read_csv("X_test.csv")
-Y_train = pd.read_csv("Y_train.csv")
-Y_test = pd.read_csv("Y_test.csv")
+X_train = pd.read_csv("mansi/X_train.csv")
+X_test = pd.read_csv("mansi/X_test.csv")
+Y_train = pd.read_csv("mansi/Y_train.csv")
+Y_test = pd.read_csv("mansi/Y_test.csv")
 print("✅ Data loaded successfully.")
 print("🔹 Y_train shape:", Y_train.shape)
 print(Y_train.head()) 
