@@ -2,7 +2,7 @@
   "education": "Category",
   "joiningyear": "datetime",
   "city": "Category",
-  "paymenttier": "ordinal",
+  "paymenttier": "Ordinal",
   "age": "Numeric",
   "gender": "Category",
   "everbenched": "Category",
