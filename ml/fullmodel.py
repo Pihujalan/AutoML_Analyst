@@ -16,8 +16,70 @@ import os
 from category_encoders import TargetEncoder
 import pprint
 from shap import TreeExplainer
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+#encode data
+warnings.simplefilter(action='ignore', category=FutureWarning)
+# Load dataset
+#df = pd.read_csv("cleaned_input.csv")
+df=pd.read_csv(r"C:\Users\hp\Desktop\insurance.csv")
 
+print("Original shape:", df.shape)
 
+# Ask for target column (not needed for label encoding, but kept for compatibility)
+print("\nAvailable columns:")
+print(df.columns.tolist())
+target_col = input("\nEnter the name of the target column (used only for Target Encoding): ")
+
+if target_col not in df.columns:
+    print(f"❌ Target column '{target_col}' not found in the dataset. Exiting.")
+    exit()
+
+# Save the target column
+with open("mansi/target_config.json", "w") as f:
+    json.dump({"target_column": target_col}, f)
+
+# --- STEP 1: Convert all boolean-like columns to 0/1 ---
+for col in df.columns:
+    unique_vals = set(df[col].dropna().unique())
+    if unique_vals <= {True, False} or unique_vals <= {'True', 'False'}:
+        df[col] = df[col].replace({True: 1, False: 0, 'True': 1, 'False': 0}).astype(int)
+
+# --- STEP 2: Label encode all object/category columns ---
+cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
+for col in cat_cols:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col].astype(str))
+
+# --- STEP 3: Save final encoded output ---
+df.to_csv("mansi/encoded_input.csv", index=False)
+print("\n✅ Label encoding complete. Output saved as 'encoded_input.csv'")
+
+#========================train-test-split=======================================
+df = pd.read_csv("encoded_input.csv")
+print("Available columns in the dataset: ")
+print(df.columns.tolist())
+target_col = input("\n Enter the name of the target column from the above list: ")
+if target_col not in df.columns:
+    print(f" Column '{target_col}' not found in the dataset. Exiting.")
+    exit()
+    
+
+X = df.drop(columns=[target_col])
+Y = df[target_col]
+print(f" Features and target separated. Shape of X: {X.shape}, Y: {Y.shape}")
+
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+X_train.to_csv("mansi/X_train.csv", index=False)
+X_test.to_csv("mansi/X_test.csv", index=False)
+Y_train.to_csv("mansi/Y_train.csv", index=False)
+Y_test.to_csv("mansi/Y_test.csv", index=False)
+
+print("\n✅ Data split completed:")
+print(f"   - X_train: {X_train.shape}")
+print(f"   - X_test: {X_test.shape}")
+print(f"   - Y_train: {Y_train.shape}")
+print(f"   - Y_test: {Y_test.shape}")
 #--------------------------------GBM-----------------------------------------------------
 def train_gbm_model(X_train, y_train, X_test, y_test, target_col):
     print("🚀 Training GBM Model...")
@@ -311,7 +373,7 @@ def train_flaml_fallback(X_train, y_train, X_test, y_test, rf_test_metrics):
     else:
         fallback_time_budget += 10
 
-    if rf_r2_score =< 0.3:
+    if rf_r2_score < 0.3:
         fallback_time_budget += 60
     elif 0.3<rf_r2_score < 0.5:
         fallback_time_budget += 30
