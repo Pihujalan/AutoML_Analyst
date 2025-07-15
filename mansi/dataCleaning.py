@@ -86,6 +86,21 @@ duplicates = df.duplicated().sum()
 df.drop_duplicates(inplace=True)
 print(f"Removed {duplicates} duplicates. Remaining rows: {df.shape[0]}")
 
+# Standardize text columns
+for col in df.columns:
+    if df[col].dtype.name == 'category':
+        # Ensure 'Unknown' is added to allowed categories
+        if 'Unknown' not in df[col].cat.categories:
+            df[col] = df[col].cat.add_categories(['Unknown'])
+        df[col] = df[col].fillna('Unknown')
+
+    elif df[col].dtype == 'object':
+        df[col] = df[col].fillna('Unknown')
+
+    # Clean string columns after fillna
+    if df[col].dtype == 'object' or df[col].dtype.name == 'category':
+        df[col] = df[col].astype(str).str.strip().str.title()
+
 # 🔁 Convert types based on column names
 print("Current column data types:\n", df.dtypes)
 for col in df.columns:
@@ -230,13 +245,23 @@ print("Ordinal columns: ", ordinal_cols)
 
 # 🚨 Final Missing Value Check after conversions
 for col in df.columns[df.isnull().any()]:
-    if is_numeric_dtype(df[col]):
-        mean_val = df[col].mean()
-        df[col] = df[col].fillna(mean_val)
-        print(f"[FINAL] Filled missing values in numeric column '{col}' with mean: {mean_val}")
+    if is_integer_dtype(df[col]):
+        mean_val = round(df[col].mean())
+        df[col] = df[col].fillna(mean_val).astype(int)
+        print(f"✅ Filled missing values in integer column '{col}' with rounded mean: {mean_val}")
+    elif is_numeric_dtype(df[col]):
+        non_null_values = df[col].dropna()
+        if all(float(x).is_integer() for x in non_null_values):
+            mean_val = round(df[col].mean())
+            df[col] = df[col].fillna(mean_val).astype(int)
+            print(f"✅ Filled numeric column '{col}' with rounded mean (int): {mean_val}")
+        else:
+            mean_val = round(df[col].mean(), 2)
+            df[col] = df[col].fillna(mean_val)
+            print(f"✅ Filled numeric column '{col}' with rounded mean (float): {mean_val}")
     else:
         df[col] = df[col].fillna("Unknown")
-        print(f"[FINAL] Filled missing values in text column '{col}' with 'Unknown'")
+        print(f"✅ Filled missing values in text column '{col}' with 'Unknown'")
 
 
 
