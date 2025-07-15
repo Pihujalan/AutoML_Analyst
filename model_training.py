@@ -12,6 +12,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from category_encoders import TargetEncoder
 import warnings
 from flaml import AutoML
+from tabulate import tabulate
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 sns.set(style="whitegrid")
@@ -156,6 +157,7 @@ for col in segment_columns:
     plt.savefig(f"plots/segment_{col}_mae.png")
     plt.close()
 
+
 print("\n Checking if fallback model is needed...")
 
 train_preds = best_model.predict(X_train)
@@ -190,7 +192,6 @@ with open("model_type.txt", "w") as f:
     f.write(used_model_type)
 
 
-
 def run_gbm_shap_analysis(model, X_train):
     try:
         os.environ["JOBLIB_MULTIPROCESSING"] = "0"  # Avoid SHAP loky deadlock
@@ -221,7 +222,7 @@ def run_gbm_shap_analysis(model, X_train):
             print(f"\n🗣️ Key Insight: '{shap_df.iloc[0]['Feature']}' had the most influence.")
 
         if choice in ["2", "3"]:
-            from tabulate import tabulate
+            
             print("\n📊 Top 5 Features (Tabular):")
             print(tabulate(shap_df.head(5), headers='keys', tablefmt='fancy_grid'))
 

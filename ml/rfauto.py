@@ -79,7 +79,9 @@ def train_rf_model(X_train, y_train, X_test, y_test):
     print("✅ FIT done")
 
     best_rf = search.best_estimator_
+ 
     train_preds = best_rf.predict(X_train)
+    joblib.dump(best_rf, "best_rf_model.pkl")
 
     plt.figure(figsize=(6, 4))
     sns.scatterplot(x=y_train, y=train_preds, alpha=0.5)
@@ -114,6 +116,23 @@ def train_rf_model(X_train, y_train, X_test, y_test):
     print(f"   - R² Score:  {round(r2, 4)}")
     print(f"   - MAE:       {round(mae, 4)}")
     print(f"   - RMSE:      {round(rmse, 4)}")
+
+    with open("best_rf_metrics.json", "w") as f:
+       json.dump({
+        "r2": round(r2, 4),
+        "mae": round(mae, 4),
+        "rmse": round(rmse, 4),
+        "cv": cv,
+        "n_iter": n_iter,
+        "param_grid_used": param_grid,
+        "best_params": search.best_params_,
+        "data_profile": {
+            "rows": num_rows,
+            "columns": num_cols,
+            "target_std": round(target_std, 2),
+            "target_uniques": target_uniques
+         }
+        }, f, indent=4)
     # ------------------ Segment-wise Analysis ------------------
     print("\n📊 Performing segment-wise analysis on training data...")
 
@@ -212,7 +231,8 @@ def train_rf_model(X_train, y_train, X_test, y_test):
     plt.title("Test: Actual vs Predicted")
     plt.grid(True)
     plt.tight_layout()
-    plt.show()
+    plt.savefig("plots/test_actual_vs_pred_rf.png")
+    plt.close()
 
     test_residuals = y_test - test_preds
     plt.figure(figsize=(6, 4))
@@ -223,7 +243,8 @@ def train_rf_model(X_train, y_train, X_test, y_test):
     plt.title("Test: Residual Plot")
     plt.grid(True)
     plt.tight_layout()
-    plt.show()
+    plt.savefig("plots/test_residual_rf.png")
+    plt.close()
 
     print("🔍 Starting SHAP...")
 

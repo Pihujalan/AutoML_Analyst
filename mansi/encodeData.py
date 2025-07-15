@@ -12,7 +12,8 @@ import os
 os.makedirs("encoders", exist_ok=True)
 
 # Load dataset
-df = pd.read_csv("cleaned_input.csv")
+#df = pd.read_csv("cleaned_input.csv")
+df = pd.read_csv("insurance.csv")
 print("Original shape:", df.shape)
 
 # Target column input (only used for Target Encoding, not applied here)
