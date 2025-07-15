@@ -70,15 +70,22 @@ print("✅ Column names standardized")
 # 🚫 Handle missing values
 print("\nMissing values (column-wise):")
 print(df.isnull().sum())
-for col in df.columns[df.isnull().any()]:
+# 🧠 Force integer type based on column name
+force_int_keywords = ["age", "year", "count", "number", "quantity"]
+
+for col in df.columns:
+    col_lower = col.lower()
     if is_numeric_dtype(df[col]):
-        mean_val = df[col].mean()
-        mean_val = round(mean_val) if is_integer_dtype(df[col]) else round(mean_val, 2)
-        df[col] = df[col].fillna(mean_val)
-        print(f"Filled missing values in numeric column '{col}' with mean: {mean_val}")
-    else:
-        df[col] = df[col].fillna("Unknown")
-        print(f"Filled missing values in text column '{col}' with 'Unknown'")
+        if any(key in col_lower for key in force_int_keywords):
+            if df[col].isnull().any():
+                mean_val = round(df[col].mean())
+                df[col] = df[col].fillna(mean_val)
+            try:
+                df[col] = df[col].astype(int)
+                print(f"🔁 Forced column '{col}' to int based on name")
+            except:
+                print(f"⚠️ Could not convert column '{col}' to int — maybe contains decimals or issues")
+
 
 # 🧹 Remove duplicates
 print(f"Total rows before removing duplicates: {df.shape[0]}")
