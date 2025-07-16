@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import sys
 
 # -------------------- Page Setup --------------------
 st.set_page_config(page_title="AutoML Analyst", layout="wide")
@@ -112,3 +113,26 @@ if st.session_state.confirmed and st.session_state.df is not None:
         st.session_state.confirmed = False
         st.session_state.df = None
         st.rerun()
+
+
+    st.subheader("🧼 Cleaned Data Preview")
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+    from mansi.dataCleaning import clean_data_with_logs
+
+    # Run the cleaning function
+    cleaned_df = clean_data_with_logs(st.session_state.df, log_path="logs/cleaning_log.txt")
+
+    # Show cleaned data
+    st.dataframe(cleaned_df.head(10))
+
+    # Save and offer download
+    cleaned_df.to_csv("data/cleaned_input.csv", index=False)
+
+    with open("data/cleaned_input.csv", "rb") as f:
+        st.download_button(
+            "📥 Download Cleaned CSV",
+            f,
+            file_name="cleaned_input.csv",
+            mime="text/csv"
+        )
