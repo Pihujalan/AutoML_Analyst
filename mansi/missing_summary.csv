@@ -1,10 +1,8 @@
 column_name,num_missing,percent_missing
-Education,0,0.0
-JoiningYear,0,0.0
-City,5,0.10734220695577501
-PaymentTier,0,0.0
-Age,5,0.10734220695577501
-Gender,5,0.10734220695577501
-EverBenched,0,0.0
-ExperienceInCurrentDomain,0,0.0
-LeaveOrNot,0,0.0
+age,0,0.0
+sex,0,0.0
+bmi,0,0.0
+children,0,0.0
+smoker,0,0.0
+region,0,0.0
+charges,0,0.0

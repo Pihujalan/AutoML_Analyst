@@ -56,8 +56,13 @@ for col in cat_cols:
     df[col] = df[col].astype(str).str.lower().str.strip()  # Clean text
     le = LabelEncoder()
     df[col] = le.fit_transform(df[col])
-    joblib.dump(le, f'encoders/{col}_encoder.pkl')
+    # Define correct output folder relative to current working directory
+    cwd = os.getcwd()
+    encoders_dir = os.path.join(cwd, "mansi", "encoders")
+    os.makedirs(encoders_dir, exist_ok=True)
 
+    # Save encoder to correct folder
+    joblib.dump(le, os.path.join(encoders_dir, f"{col}_encoder.pkl"))
 # --- STEP 4: Save final encoded data ---
 df.to_csv("encoded_input.csv", index=False)
 print("\n✅ Encoding complete. Output saved as 'encoded_input.csv'")

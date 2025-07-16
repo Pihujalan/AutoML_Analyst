@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import os
 import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from ml.fullmodel import run_full_pipeline
 
 # -------------------- Page Setup --------------------
 st.set_page_config(page_title="AutoML Analyst", layout="wide")
@@ -140,3 +142,17 @@ if st.session_state.confirmed and st.session_state.df is not None:
             file_name="cleaned_input.csv",
             mime="text/csv"
         )
+    # ✅ Correct usage of cleaned_df
+    numeric_columns = cleaned_df.select_dtypes(include=['int64', 'float64']).columns.tolist()
+    target_col = st.selectbox("Select the numeric target column for model training", numeric_columns)
+    cleaned_csv_path = "data/cleaned_input.csv"
+    cleaned_df.to_csv(cleaned_csv_path, index=False)
+    # Run full pipeline
+    if st.button("Run Full AutoML Pipeline"):
+        run_full_pipeline(cleaned_csv_path=cleaned_csv_path, target_col=target_col)
+        st.success("✅ Model training complete!")
+
+        # Optional: show missing summary
+        missing_df = pd.read_csv("mansi/missing_summary.csv")
+        st.subheader("Missing Value Summary")
+        st.dataframe(missing_df)
