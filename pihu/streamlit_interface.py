@@ -117,19 +117,23 @@ if st.session_state.confirmed and st.session_state.df is not None:
 
     st.subheader("🧼 Cleaned Data Preview")
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
     from mansi.dataCleaning import clean_data_with_logs
 
-    # Run the cleaning function
-    cleaned_df = clean_data_with_logs(st.session_state.df, log_path="logs/cleaning_log.txt")
+    # 🧼 Run cleaning only once and cache it in session_state
+    if "cleaned_df" not in st.session_state:
+        cleaned_df = clean_data_with_logs(st.session_state.df, log_path="logs/cleaning_log.txt")
+        st.session_state.cleaned_df = cleaned_df
+    else:
+        cleaned_df = st.session_state.cleaned_df
 
-    # Show cleaned data
+    # ✅ Show cleaned data
     st.dataframe(cleaned_df.head(10))
 
-    # Save and offer download
-    cleaned_df.to_csv("data/cleaned_input.csv", index=False)
+    # ✅ Save and offer download
+    cleaned_path = "data/cleaned_input.csv"
+    cleaned_df.to_csv(cleaned_path, index=False)
 
-    with open("data/cleaned_input.csv", "rb") as f:
+    with open(cleaned_path, "rb") as f:
         st.download_button(
             "📥 Download Cleaned CSV",
             f,

@@ -1,0 +1,20 @@
+{
+  "date": "datetime",
+  "price": "Numeric",
+  "bedrooms": "numeric",
+  "bathrooms": "Numeric",
+  "sqft_living": "Numeric",
+  "sqft_lot": "Numeric",
+  "floors": "Numeric",
+  "waterfront": "Numeric",
+  "view": "Numeric",
+  "condition": "Ordinal",
+  "sqft_above": "Numeric",
+  "sqft_basement": "Numeric",
+  "yr_built": "Numeric",
+  "yr_renovated": "Numeric",
+  "street": "Free Text",
+  "city": "Free Text",
+  "statezip": "Free Text",
+  "country": "Category"
+}

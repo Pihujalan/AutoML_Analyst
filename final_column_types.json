@@ -1,0 +1,11 @@
+{
+  "education": "Category",
+  "joiningyear": "datetime",
+  "city": "Category",
+  "paymenttier": "Ordinal",
+  "age": "Numeric",
+  "gender": "Category",
+  "everbenched": "Category",
+  "experienceincurrentdomain": "ordinal",
+  "leaveornot": "Category"
+}
