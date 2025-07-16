@@ -20,6 +20,8 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from scipy.stats import chi2_contingency, ttest_ind, f_oneway
 from scipy.stats import skew, kurtosis, zscore
+import argparse
+import sys
 #====================================*Pattern Analysis*==============================================================
 
 if not os.path.exists("plots"):
@@ -1450,4 +1452,216 @@ def run_full_analysis(model, X_train, y_train, X_test, y_test, model_name):
         print("\n⚠️ SHAP analysis failed gracefully. Continuing without SHAP.")
         print(f"   → Reason: {str(e)}")
 
+# ========================🔍 Conflict Detection: Stats vs SHAP======================================================
+    print("\n🧠 Comparing statistical patterns vs SHAP importance...")
+
+    conflicts = []
+
+    # === 1. Load SHAP scores ===
+    if os.path.exists(f"{model_name}_shap_importance.json"):
+        with open(f"{model_name}_shap_importance.json") as f:
+            shap_scores = json.load(f)
+    else:
+        shap_scores = {}
+        print("⚠️ No SHAP scores found.")
+
+    # === 2. Compute Pearson correlation with target ===
+    if 'target' in df_full.columns:
+        corr_matrix = df_full.corr(numeric_only=True)
+        pearson_corrs = corr_matrix["target"].drop("target", errors='ignore').abs().to_dict()
+    else:
+        pearson_corrs = {}
+
+    # === 3. Run T-tests for categorical cols vs target ===
+    categorical_cols = df_full.select_dtypes(include=['category', 'object']).columns.tolist()
+    ttest_results = {}
+
+    for col in categorical_cols:
+        if col in df_full.columns:
+            groups = [group["target"].dropna() for _, group in df_full.groupby(col)]
+            try:
+                        if len(groups) == 2:
+                            stat, p = ttest_ind(groups[0], groups[1], equal_var=False)
+                        elif len(groups) > 2:
+                            stat, p = f_oneway(*groups)
+                        else:
+                            continue
+                        ttest_results[col] = round(p, 4)
+            except:
+                        continue
+
+
+    # === 4. Compare & detect conflicts ===
+    for feat, shap_val in shap_scores.items():
+        shap_val = round(shap_val, 4)
+        if shap_val < 0.01:
+            if feat in pearson_corrs and pearson_corrs[feat] > 0.3:
+                conflicts.append({
+                    "feature": feat,
+                    "shap": shap_val,
+                    "pearson_corr": round(pearson_corrs[feat], 4),
+                    "conflict": "High correlation, low SHAP"
+                })
+            elif feat in ttest_results and ttest_results[feat] < 0.05:
+                conflicts.append({
+                    "feature": feat,
+                    "shap": shap_val,
+                    "ttest_pval": ttest_results[feat],
+                    "conflict": "Significant t-test, low SHAP"
+                })
+
+    # === 5. Save result ===
+    if conflicts:
+        with open("rf_conflicts.json", "w") as f:
+            json.dump(conflicts, f, indent=4)
+        print("⚠️ Conflict(s) saved to rf_conflicts.json")
+
+        # === Optional Visual Diagnostics for Conflict Features ===
+        print("\n🖼️ Visualizing conflicting features and checking collinearity...")
+        os.makedirs("plots/conflict_analysis", exist_ok=True)
+
+        for c in conflicts:
+            feature = c["feature"]
+            if feature not in df_full.columns:
+                continue
+
+            # === 1. Plot: Scatter or Boxplot ===
+            try:
+                if pd.api.types.is_numeric_dtype(df_full[feature]):
+                    plt.figure(figsize=(6,4))
+                    sns.scatterplot(x=df_full[feature], y=df_full["target"])
+                    plt.title(f"{feature} vs Target (Conflict Scatter)")
+                    plt.xlabel(feature)
+                    plt.ylabel("Target")
+                    plt.tight_layout()
+                    plt.savefig(f"plots/conflict_analysis/{feature}_scatter.png")
+                    plt.close()
+                else:
+                    plt.figure(figsize=(6,4))
+                    sns.boxplot(x=df_full[feature], y=df_full["target"])
+                    plt.title(f"{feature} vs Target (Conflict Boxplot)")
+                    plt.xlabel(feature)
+                    plt.ylabel("Target")
+                    plt.tight_layout()
+                    plt.savefig(f"plots/conflict_analysis/{feature}_boxplot.png")
+                    plt.close()
+            except Exception as e:
+                print(f"⚠️ Failed to plot for {feature}: {e}")
+
+            # === 2. Correlation with other features ===
+            if pd.api.types.is_numeric_dtype(df_full[feature]):
+                try:
+                    corrs = df_full.corr(numeric_only=True)[feature].drop(feature, errors='ignore').sort_values(ascending=False)
+                    top_corrs = corrs[abs(corrs) > 0.5].head(3)
+                    if not top_corrs.empty:
+                        print(f"\n📎 {feature} is strongly correlated with:")
+                        for f, v in top_corrs.items():
+                            print(f"   → {f} (corr = {round(v, 3)})")
+                except Exception as e:
+                    print(f"⚠️ Failed to compute correlations for {feature}: {e}")
+
+    else:
+        print("✅ No conflicts found between stats and SHAP.")
+
+        
+    
 run_full_analysis(final_model, X_train, y_train, X_test, y_test, model_name=used_model_type)
+
+# =========================
+# 🧠 INTERACTIVE PREDICTION MODE
+# =========================
+if __name__ == "__main__":
+    print("\n🧪 Do you want to make predictions using your trained model?")
+    choice = input("Type 'yes' to continue, or anything else to skip: ").strip().lower()
+
+    if choice == "yes":
+        print("\n📌 Choose input mode:")
+        print("1. Upload CSV file for batch prediction")
+        print("2. Manually enter values for a single prediction")
+        mode = input("Enter 1 or 2: ").strip()
+
+        # Load column types and final model
+        with open("mansi/final_column_types.json", "r") as f:
+            column_types = json.load(f)
+
+        with open("mansi/target_config.json", "r") as f:
+            target_col = json.load(f)["target_column"]
+
+        model = joblib.load("final_model.pkl")
+
+        if mode == "1":
+            file_path = input("\n📂 Enter the full path to your CSV file: ").strip()
+
+            if not os.path.exists(file_path):
+                print(f"❌ File not found: {file_path}")
+            else:
+                df_input = pd.read_csv(file_path)
+                df_input = df_input.drop(columns=[target_col], errors="ignore")
+                preds = model.predict(df_input)
+                df_input["Predicted"] = preds
+                df_input.to_csv("predicted_rf.csv", index=False)
+                print("\n✅ Predictions saved to: predicted_rf.csv")
+
+        elif mode == "2":
+            print("\n🧾 Manual Input Mode:")
+
+            input_data = {}
+            encoders_path = "mansi/encoders"
+            encoders = {}
+
+            # Preload all encoders
+            for col, dtype in column_types.items():
+                if col == target_col:
+                    continue
+                if dtype == "category":
+                    encoder_file = os.path.join(encoders_path, f"{col}_encoder.pkl")
+                    if os.path.exists(encoder_file):
+                        encoders[col] = joblib.load(encoder_file)
+                    else:
+                        encoders[col] = None  # Still store as None for fallback
+
+            # Now loop through columns and ask input
+            for col, dtype in column_types.items():
+                if col == target_col:
+                    continue
+
+                print(f"\n👉 {col} (type: {dtype})")
+
+                if dtype == "category":
+                    le = encoders.get(col)
+                    if le:
+                        valid_classes = list(le.classes_)
+                        print(f"   🔹 Valid options: {valid_classes}")
+                    else:
+                        valid_classes = []
+                        print("   ⚠️ No encoder found — skipping category validation.")
+
+                while True:
+                    value = input("   Your input: ").strip()
+                    try:
+                        if dtype == "numeric":
+                            input_data[col] = float(value)
+                        elif dtype == "ordinal":
+                            input_data[col] = int(value)
+                        elif dtype == "category":
+                            le = encoders.get(col)
+                            if le is None:
+                                input_data[col] = value
+                                break
+                            if value.lower() not in le.classes_:
+                                print(f"❌ Invalid input. Must be one of: {list(le.classes_)}")
+                                continue
+                            input_data[col] = le.transform([value.lower()])[0]
+                        elif dtype == "time":
+                            input_data[col] = pd.to_datetime(value)
+                        elif dtype == "id":
+                            input_data[col] = str(value)
+                        else:
+                            input_data[col] = value
+                        break
+                    except Exception as e:
+                        print(f"❌ Error: {e}. Try again.")
+
+            df_manual = pd.DataFrame([input_data])
+            pred = model.predict(df_manual)[0]
+            print(f"\n🎯 Predicted Value: {round(pred, 2)}")
