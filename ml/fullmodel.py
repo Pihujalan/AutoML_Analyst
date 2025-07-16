@@ -20,13 +20,15 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 #encode data
 warnings.simplefilter(action='ignore', category=FutureWarning)
+# Ensure encoders folder exists
+os.makedirs("mansi/encoders", exist_ok=True)
+
 # Load dataset
 #df = pd.read_csv("cleaned_input.csv")
-df=pd.read_csv(r"C:\Users\hp\Desktop\insurance.csv")
-
+df = pd.read_csv("mansi/insurance.csv")
 print("Original shape:", df.shape)
 
-# Ask for target column (not needed for label encoding, but kept for compatibility)
+# Target column input (only used for Target Encoding, not applied here)
 print("\nAvailable columns:")
 print(df.columns.tolist())
 target_col = input("\nEnter the name of the target column (used only for Target Encoding): ")
@@ -35,34 +37,54 @@ if target_col not in df.columns:
     print(f"❌ Target column '{target_col}' not found in the dataset. Exiting.")
     exit()
 
-# Save the target column
+# Save the target column config
 with open("mansi/target_config.json", "w") as f:
     json.dump({"target_column": target_col}, f)
 
-# --- STEP 1: Convert all boolean-like columns to 0/1 ---
+# --- STEP 1: Convert boolean-like columns to 0/1 ---
 for col in df.columns:
     unique_vals = set(df[col].dropna().unique())
     if unique_vals <= {True, False} or unique_vals <= {'True', 'False'}:
         df[col] = df[col].replace({True: 1, False: 0, 'True': 1, 'False': 0}).astype(int)
 
-# --- STEP 2: Label encode all object/category columns ---
+# --- STEP 2: Manually normalize key binary columns ---
+if 'gender' in df.columns:
+    df['gender'] = df['gender'].astype(str).str.lower().str.strip()
+    df['gender'] = df['gender'].replace({
+        'male': 1, 'm': 1,
+        'female': 0, 'f': 0
+    })
+
+if 'everbenched' in df.columns:
+    df['everbenched'] = df['everbenched'].astype(str).str.lower().str.strip()
+    df['everbenched'] = df['everbenched'].replace({
+        'yes': 1, 'y': 1,
+        'no': 0, 'n': 0
+    })
+
+# --- STEP 3: Label encode remaining object/category columns ---
 cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
 for col in cat_cols:
+    df[col] = df[col].astype(str).str.lower().str.strip()  # Clean text
     le = LabelEncoder()
-    df[col] = le.fit_transform(df[col].astype(str))
+    df[col] = le.fit_transform(df[col])
+    joblib.dump(le, f'encoders/{col}_encoder.pkl')
 
-# --- STEP 3: Save final encoded output ---
+# --- STEP 4: Save final encoded data ---
 df.to_csv("mansi/encoded_input.csv", index=False)
-print("\n✅ Label encoding complete. Output saved as 'encoded_input.csv'")
+print("\n✅ Encoding complete. Output saved as 'encoded_input.csv'")
+print("🧠 LabelEncoders saved in 'encoders/' folder.")
 
 #========================train-test-split=======================================
 df = pd.read_csv("encoded_input.csv")
-print("Available columns in the dataset: ")
-print(df.columns.tolist())
-target_col = input("\n Enter the name of the target column from the above list: ")
+# Load target column from earlier saved config
+with open("mansi/target_config.json", "r") as f:
+    target_col = json.load(f)["target_column"]
+
 if target_col not in df.columns:
-    print(f" Column '{target_col}' not found in the dataset. Exiting.")
+    print(f"❌ Target column '{target_col}' not found in the dataset. Exiting.")
     exit()
+
     
 
 X = df.drop(columns=[target_col])
