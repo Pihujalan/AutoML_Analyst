@@ -1,9 +1,11 @@
 {
-  "Date": "datetime",
-  "Price": "Numeric",
-  "Open": "Numeric",
-  "High": "Numeric",
-  "Low": "Numeric",
-  "Vol.": "Free Text",
-  "Change %": "Free Text"
+  "Education": "Category",
+  "JoiningYear": "datetime",
+  "City": "Category",
+  "PaymentTier": "Ordinal",
+  "Age": "Numeric",
+  "Gender": "Category",
+  "EverBenched": "Category",
+  "ExperienceInCurrentDomain": "Numeric",
+  "LeaveOrNot": "Category"
 }
