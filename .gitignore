@@ -1,1 +1,8 @@
 # creds.json
+pihu/best_rf_model.pkl
+# Model files
+*.pkl
+
+# CSV inputs
+*.csv
+
