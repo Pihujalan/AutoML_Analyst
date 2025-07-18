@@ -1,9 +1,9 @@
 {
-  "age": "Numeric",
-  "sex": "Category",
-  "bmi": "Numeric",
-  "children": "Ordinal",
-  "smoker": "Category",
-  "region": "Category",
-  "charges": "ID"
+  "Date": "datetime",
+  "Price": "Numeric",
+  "Open": "Numeric",
+  "High": "Numeric",
+  "Low": "Numeric",
+  "Vol.": "Free Text",
+  "Change %": "Free Text"
 }

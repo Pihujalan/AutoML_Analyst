@@ -113,12 +113,13 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
     print("Current column data types:\n", df.dtypes)
     for col in df.columns:
         if df[col].dtype == "object":
-            if "date" in col.lower() or "year" in col.lower():
+            datetime_keywords = ["date", "year", "dob", "birth", "timestamp", "time", "created", "modified", "registered"]
+            if any(key in col.lower() for key in datetime_keywords):
                 try:
-                    df[col] = pd.to_datetime(df[col], format="%Y-%m-%d", errors="coerce")
+                    df[col] = pd.to_datetime(df[col], errors="coerce", infer_datetime_format=True)
                     print(f"Converted '{col}' to datetime")
-                except:
-                    print(f"Could not convert '{col}' to datetime")
+                except Exception as e:
+                    print(f"Could not convert '{col}' to datetime: {e}")
             else:
                 df[col] = df[col].astype("category")
                 print(f"Converted '{col}' to category")
@@ -207,7 +208,7 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
                             final_types[col] = "datetime"
                         except Exception as e:
                             print(f"❌ Failed to convert '{col}' to datetime:", e)
-                            final_types[col] = "Time"
+                            final_types[col]= "datetime"
                     else:
                         final_types[col] = correct
                     print(f"✅ Column '{col}' final type set to: {final_types[col]}")
@@ -219,7 +220,7 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
                             final_types[col] = "datetime"
                         except Exception as e:
                             print(f"❌ Failed to convert '{col}' to datetime:", e)
-                            final_types[col] = "Time"
+                            final_types[col] = "datetime"
                     else:
                         final_types[col] = gpt_guess
                     print(f"✅ Confirmed GPT guess for '{col}'")
@@ -254,22 +255,36 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
     # 🚨 Final Missing Value Check after conversions
     for col in df.columns[df.isnull().any()]:
         if is_integer_dtype(df[col]):
-            mean_val = round(df[col].mean())
+            if df[col].notnull().sum() > 0:
+                mean_val = round(df[col].mean())
+            else:
+                mean_val = 0  # or a context-appropriate default
             df[col] = df[col].fillna(mean_val).astype(int)
             print(f"✅ Filled missing values in integer column '{col}' with rounded mean: {mean_val}")
         elif is_numeric_dtype(df[col]):
             non_null_values = df[col].dropna()
-            if all(float(x).is_integer() for x in non_null_values):
+            if len(non_null_values) > 0 and all(float(x).is_integer() for x in non_null_values):
                 mean_val = round(df[col].mean())
                 df[col] = df[col].fillna(mean_val).astype(int)
                 print(f"✅ Filled numeric column '{col}' with rounded mean (int): {mean_val}")
-            else:
+            elif len(non_null_values) > 0:
                 mean_val = round(df[col].mean(), 2)
                 df[col] = df[col].fillna(mean_val)
                 print(f"✅ Filled numeric column '{col}' with rounded mean (float): {mean_val}")
+            else:
+                df[col] = df[col].fillna(0.0)
+                print(f"⚠️ Filled completely null numeric column '{col}' with zeros (float).")
+        elif pd.api.types.is_datetime64_any_dtype(df[col]):
+            if df[col].notnull().sum() > 0:
+                fill_date = df[col].mode().iloc[0]
+            else:
+                fill_date = pd.to_datetime("2000-01-01")
+            df[col] = df[col].fillna(fill_date)
+            print(f"✅ Filled missing dates in '{col}' with '{fill_date}'")
         else:
             df[col] = df[col].fillna("Unknown")
             print(f"✅ Filled missing values in text column '{col}' with 'Unknown'")
+
 
 
 

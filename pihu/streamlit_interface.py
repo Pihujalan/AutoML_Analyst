@@ -147,6 +147,9 @@ if st.session_state.confirmed and st.session_state.df is not None:
     target_col = st.selectbox("Select the numeric target column for model training", numeric_columns)
     cleaned_csv_path = "data/cleaned_input.csv"
     cleaned_df.to_csv(cleaned_csv_path, index=False)
+    print("Target column selected:", target_col)
+   
+
     # Run full pipeline
     if st.button("Run Full AutoML Pipeline"):
         run_full_pipeline(cleaned_csv_path=cleaned_csv_path, target_col=target_col)

@@ -27,6 +27,25 @@ X_test = pd.read_csv("mansi/X_test.csv")
 y_train = pd.read_csv("mansi/y_train.csv").squeeze()
 y_test = pd.read_csv("mansi/y_test.csv").squeeze()
 
+# ---- STEP: Convert date columns to usable numeric features ----
+
+DATE_COLS = [col for col in X_train.columns if any(word in col.lower() for word in ["date", "dob", "year", "doj", "joined", "created", "timestamp"])]
+
+for col in DATE_COLS:
+    for df in [X_train, X_test]:
+        if col in df.columns:
+            # Convert to datetime (handles already-datetime and string)
+            df[col] = pd.to_datetime(df[col], errors="coerce")
+            # Feature engineer date parts
+            df[f"{col}_year"] = df[col].dt.year
+            df[f"{col}_month"] = df[col].dt.month
+            df[f"{col}_day"] = df[col].dt.day
+            df[f"{col}_dow"] = df[col].dt.dayofweek
+            # Optionally: df[f"{col}_week"] = df[col].dt.isocalendar().week
+            # Drop the original date/datetime column
+            df.drop(columns=[col], inplace=True)
+
+
 with open("mansi/target_config.json", "r") as f:
     target_col = json.load(f)["target_column"]
 

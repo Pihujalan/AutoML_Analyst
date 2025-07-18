@@ -1,8 +1,8 @@
 column_name,num_missing,percent_missing
-age,0,0.0
-sex,0,0.0
-bmi,0,0.0
-children,0,0.0
-smoker,0,0.0
-region,0,0.0
-charges,0,0.0
+Date,0,0.0
+Price,0,0.0
+Open,0,0.0
+High,0,0.0
+Low,0,0.0
+Vol.,0,0.0
+Change_%,0,0.0

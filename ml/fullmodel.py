@@ -22,6 +22,18 @@ from scipy.stats import chi2_contingency, ttest_ind, f_oneway
 from scipy.stats import skew, kurtosis, zscore
 import argparse
 import sys
+import re
+from dateutil.parser import parse
+from pandas.api.types import is_datetime64_any_dtype, is_object_dtype
+
+def sanitize_column_name(name):
+    # Replace forbidden JSON characters for LightGBM with underscore
+    name = re.sub(r'[\"\\\{\}\:\,\[\]]', '_', name)
+    name = name.strip().replace(' ', '_')
+    name = re.sub(r'_+', '_', name)
+    return name
+
+
 #====================================*Pattern Analysis*==============================================================
 def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None):
     import pandas as pd
@@ -35,6 +47,17 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
     # Load dataset
     #df = pd.read_csv("mansi/cleaned_input.csv")
     df = pd.read_csv(cleaned_csv_path)
+    df.columns = [sanitize_column_name(col) for col in df.columns]
+    target_col = sanitize_column_name(target_col)
+
+
+    print("Running pipeline on columns:", df.columns.tolist())
+    print("Target col as passed from Streamlit:", repr(target_col))
+    if target_col not in df.columns:
+        print("All actual columns as loaded:", [repr(c) for c in df.columns])
+        raise ValueError(f"❌ Target column '{target_col}' not found in the dataset.")
+
+
 
     # --- Missing Value Pattern Analysis ---
     print("📊 Running Missing Value Pattern Analysis...")
@@ -781,6 +804,8 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
 
     df_cleaned = force_convert_exact_dtypes(df, column_types)
     df = df_cleaned  # Make sure modeling uses cleaned version
+    df.columns = [sanitize_column_name(col) for col in df.columns]
+
 
     # Final Check
     print("Final Column Data Types:")
@@ -856,6 +881,8 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
 
     #========================train-test-split=======================================
     df = pd.read_csv("mansi/encoded_input.csv")
+    df.columns = [sanitize_column_name(col) for col in df.columns]
+
     # Load target column from earlier saved config
     with open("mansi/target_config.json", "r") as f:
         target_col = json.load(f)["target_column"]
@@ -864,11 +891,22 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
         print(f"❌ Target column '{target_col}' not found in the dataset. Exiting.")
         exit()
 
-        
+    
 
-    X = df.drop(columns=[target_col])
+    with open("../mansi/final_column_types.json", "r") as f:
+        final_column_types = json.load(f)   # adjust path if needed
+
+    cols_to_exclude = [col for col, typ in final_column_types.items() if typ.lower() in ["id", "datetime", "time"]]
+   
+
+    X = df.drop(columns=cols_to_exclude + [target_col], errors='ignore')
+
+
     Y = df[target_col]
     print(f" Features and target separated. Shape of X: {X.shape}, Y: {Y.shape}")
+
+
+
 
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
     X_train.to_csv("mansi/X_train.csv", index=False)
@@ -876,12 +914,81 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
     Y_train.to_csv("mansi/Y_train.csv", index=False)
     Y_test.to_csv("mansi/Y_test.csv", index=False)
 
+
+
     print("\n✅ Data split completed:")
     print(f"   - X_train: {X_train.shape}")
     print(f"   - X_test: {X_test.shape}")
     print(f"   - Y_train: {Y_train.shape}")
     print(f"   - Y_test: {Y_test.shape}")
+
+    def looks_like_dt(val):
+        try:
+            parse(val)
+            return True
+        except Exception:
+            return False
+
+    def looks_like_date(series):
+        sample = series.dropna().astype(str).head(10)
+        for x in sample:
+            if (re.match(r"\d{4}-\d{2}-\d{2}", x) or
+                re.match(r"\d{2,4}/\d{1,2}/\d{1,2}", x) or
+                looks_like_dt(x)):
+                return True
+        return False
+
+    date_cols = [
+        col for col in X_train.columns
+        if (is_object_dtype(X_train[col]) or is_datetime64_any_dtype(X_train[col]))
+        and (looks_like_date(X_train[col]) or
+                "date" in col.lower() or "time" in col.lower() or "year" in col.lower())
+    ]
+
+    for col in date_cols:
+        for df in [X_train, X_test]:
+            if col in df.columns:
+                df[col] = pd.to_datetime(df[col], errors="coerce")
+                df[f"{col}_year"] = df[col].dt.year
+                df[f"{col}_month"] = df[col].dt.month
+                df[f"{col}_day"] = df[col].dt.day
+                df[f"{col}_dow"] = df[col].dt.dayofweek
+                df.drop(columns=[col], inplace=True)
+
+        # List or auto-detect your date columns here
+    DATE_COLS = [col for col in X_train.columns if any(word in col.lower() for word in ["date", "year", "dob", "doj", "joined", "created", "timestamp"])]
+
+    for col in DATE_COLS:
+        for df in [X_train, X_test]:
+            if col in df.columns:
+                df[col] = pd.to_datetime(df[col], errors="coerce")
+                df[f"{col}_year"] = df[col].dt.year
+                df[f"{col}_month"] = df[col].dt.month
+                df[f"{col}_day"] = df[col].dt.day
+                df[f"{col}_dow"] = df[col].dt.dayofweek
+                df.drop(columns=[col], inplace=True)
+
+
     #--------------------------------GBM-----------------------------------------------------
+    to_drop = [col for col in X_train.columns if not pd.api.types.is_numeric_dtype(X_train[col])]
+    if to_drop:
+        print(f"Dropping non-numeric columns: {to_drop}")
+        X_train = X_train.drop(columns=to_drop)
+        X_test = X_test.drop(columns=to_drop)
+
+    X_train.columns = [sanitize_column_name(col) for col in X_train.columns]
+    X_test.columns  = [sanitize_column_name(col) for col in X_test.columns]
+
+    non_num_cols = [col for col in X_train.columns if not pd.api.types.is_numeric_dtype(X_train[col])]
+    print("Non-numeric columns about to be passed to modeling:", non_num_cols)
+    for col in non_num_cols:
+        print(X_train[col].head())
+    # Drop EVERY non-numeric column (dates, strings, etc)
+    if non_num_cols:
+        X_train = X_train.drop(columns=non_num_cols)
+        X_test = X_test.drop(columns=[c for c in non_num_cols if c in X_test.columns])
+
+
     def train_gbm_model(X_train, y_train, X_test, y_test, target_col):
         print("🚀 Training GBM Model...")
         baseline_model = GradientBoostingRegressor(random_state=42)
@@ -933,11 +1040,24 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
         gap = round(r2_train - r2, 4)
         print(f"R² (Train): {r2_train:.2f}, R² (Test): {r2:.2f}, Gap: {gap:.4f}")
 
+        X_train.columns = [sanitize_column_name(col) for col in X_train.columns]
+        X_test.columns  = [sanitize_column_name(col) for col in X_test.columns]
+
+        non_num_cols = [col for col in X_train.columns if not pd.api.types.is_numeric_dtype(X_train[col])]
+        print("Non-numeric columns about to be passed to modeling:", non_num_cols)
+        for col in non_num_cols:
+            print(X_train[col].head())
+        # Drop EVERY non-numeric column (dates, strings, etc)
+        if non_num_cols:
+            X_train = X_train.drop(columns=non_num_cols)
+            X_test = X_test.drop(columns=[c for c in non_num_cols if c in X_test.columns])
+
+
         if r2 < 0.5 or (gap > 0.15 and r2 < 0.5):
             print(f"\n⚠️ GBM model underperformed or overfitting detected (gap = {gap})")
 
             automl = AutoML()
-            automl.fit(X_train=X_train, y_train=y_train, task="regression", time_budget=60)
+            automl.fit(X_train=X_train, y_train=y_train, task="regression",estimator_list=['lgbm', 'xgboost'], time_budget=60,n_jobs=-1)
 
             y_pred_fallback = automl.predict(X_test)
             mae_fallback = mean_absolute_error(y_test, y_pred_fallback)
@@ -972,6 +1092,17 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
 
 
     #-----------------random forest----------------------------------------------------------
+    X_train.columns = [sanitize_column_name(col) for col in X_train.columns]
+    X_test.columns  = [sanitize_column_name(col) for col in X_test.columns]
+    non_num_cols = [col for col in X_train.columns if not pd.api.types.is_numeric_dtype(X_train[col])]
+    print("Non-numeric columns about to be passed to modeling:", non_num_cols)
+    for col in non_num_cols:
+        print(X_train[col].head())
+    # Drop EVERY non-numeric column (dates, strings, etc)
+    if non_num_cols:
+        X_train = X_train.drop(columns=non_num_cols)
+        X_test = X_test.drop(columns=[c for c in non_num_cols if c in X_test.columns])
+
     def train_rf_model(X_train, y_train, X_test, y_test):
         num_rows, num_cols = X_train.shape
         target_std = y_train.std()
@@ -1119,6 +1250,64 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
     y_train = pd.read_csv("mansi/Y_train.csv").squeeze()
     X_test = pd.read_csv("mansi/X_test.csv")
     y_test = pd.read_csv("mansi/Y_test.csv").squeeze()
+    X_train.columns = [sanitize_column_name(col) for col in X_train.columns]
+    X_test.columns  = [sanitize_column_name(col) for col in X_test.columns]
+    non_num_cols = [col for col in X_train.columns if not pd.api.types.is_numeric_dtype(X_train[col])]
+    print("Non-numeric columns about to be passed to modeling:", non_num_cols)
+    for col in non_num_cols:
+        print(X_train[col].head())
+    # Drop EVERY non-numeric column (dates, strings, etc)
+    if non_num_cols:
+        X_train = X_train.drop(columns=non_num_cols)
+        X_test = X_test.drop(columns=[c for c in non_num_cols if c in X_test.columns])
+
+    
+
+    def clean_target(y):
+        # If Series is object or datetime, handle conversion...
+        if isinstance(y, pd.DataFrame):
+            y = y.squeeze()
+        if pd.api.types.is_numeric_dtype(y):
+            return y
+        # Try numeric conversion first
+        try:
+            y_num = pd.to_numeric(y, errors="raise")
+            return y_num
+        except Exception:
+            pass
+        # Try datetime conversion next
+        try:
+            y_date = pd.to_datetime(y, errors="raise")
+            # Convert to days since epoch, as float
+            y_num = (y_date - pd.Timestamp("1970-01-01")).dt.days.astype(float)
+            print("Converted datetime target to days since 1970-01-01.")
+            return y_num
+        except Exception:
+            print("y contains unsupported datatypes for target!")
+            print(y.head(10))
+            raise ValueError("Target column could not be cast to float or days. Fix your source target.")
+        return y
+
+    y_train = clean_target(y_train)
+    y_test  = clean_target(y_test)
+
+
+        # Only select columns of dtype object or that truly look like dates
+    original_date_cols = [col for col in X_train.columns
+                        if any(word in col.lower() for word in ["date", "dob", "doj", "joined", "created", "timestamp"])
+                        and X_train[col].dtype == 'object'] 
+    # Or, more robust: and not col.endswith(("_year", "_month", "_day", "_dow", "_week"))
+
+    for col in original_date_cols:
+        for df in [X_train, X_test]:
+            if col in df.columns:
+                df[col] = pd.to_datetime(df[col], errors="coerce")
+                df[f"{col}_year"] = df[col].dt.year
+                df[f"{col}_month"] = df[col].dt.month
+                df[f"{col}_day"] = df[col].dt.day
+                df[f"{col}_dow"] = df[col].dt.dayofweek
+                # Optionally: df[f"{col}_week"] = df[col].dt.isocalendar().week
+                df.drop(columns=[col], inplace=True)
 
     print("\n🌲 Training Random Forest model...")
     rf_model, rf_train_metrics, rf_test_metrics = train_rf_model(X_train, y_train, X_test, y_test)
@@ -1189,7 +1378,7 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
             "metric": 'r2',
             "task": 'regression',
             "log_file_name": "flaml_fallback.log",
-            "estimator_list": ["lgbm", "xgboost", "rf"],
+            "estimator_list": ["lgbm", "xgboost"],
             "seed": 42,
             "early_stop": True,
             "max_iter": 300  # Optional cap to avoid infinite loops
@@ -1391,8 +1580,22 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
         try:
                 print("\n📊 Saving feature importance plot...")
                 importances = model.feature_importances_
-                features = X_train.columns
+                # Use model's feature_names_in_ if available (scikit-learn 1.0+), else fall back to X_train.columns
+                if hasattr(model, "feature_names_in_"):
+                    features = model.feature_names_in_
+                else:
+                    features = X_train.columns
+
+                importances = model.feature_importances_
+
+                # Safety: ensure equal length, else print for debug and raise clear error
+                if len(features) != len(importances):
+                    print("Feature names:", features)
+                    print("Importances:", importances)
+                    raise ValueError(f"Length mismatch: {len(features)} features, {len(importances)} importances!")
+
                 importance_df = pd.DataFrame({"Feature": features, "Importance": importances}).sort_values(by="Importance", ascending=False)
+
 
                 plt.figure(figsize=(10, 5))
                 sns.barplot(data=importance_df, x="Importance", y="Feature", palette="viridis")
@@ -1589,7 +1792,7 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
             mode = input("Enter 1 or 2: ").strip()
 
             # Load column types and final model
-            with open("mansi/final_column_types.json", "r") as f:
+            with open("../mansi/final_column_types.json", "r") as f:
                 column_types = json.load(f)
 
             with open("mansi/target_config.json", "r") as f:

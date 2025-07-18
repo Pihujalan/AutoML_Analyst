@@ -1,0 +1,15 @@
+{
+    "train_metrics": {
+        "r2": 0.794,
+        "mae": 84.088,
+        "rmse": 258.0589
+    },
+    "test_metrics": {
+        "r2": 0.2695,
+        "mae": 220.3959,
+        "rmse": 698.7764
+    },
+    "training_time": 218.67,
+    "fallback_time_budget": 210,
+    "best_estimator": "lgbm"
+}
