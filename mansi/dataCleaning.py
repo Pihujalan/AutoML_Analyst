@@ -198,34 +198,34 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
             gpt_failed = True
         if gpt_guess:
             gpt_guess = gpt_guess.split()[0].strip().capitalize()
-            if gpt_guess.lower() != local_guess.lower():
-                print(f"⚠️ Mismatch for '{col}': Code guessed '{local_guess}', GPT guessed '{gpt_guess}'")
-                user_input = input(f"Do you agree with GPT’s guess '{gpt_guess}' for column '{col}'? (yes/no): ")
-                if user_input.lower() == "no":
-                    correct = input("Enter correct type (Time, Numeric, Ordinal, Category, ID, Free Text): ")
-                    if correct.lower() == "time":
-                        try:
-                            df[col] = pd.to_datetime(df[col], errors="coerce")
-                            print(f"⏳ Converted '{col}' to datetime")
-                            final_types[col] = "datetime"
-                        except Exception as e:
-                            print(f"❌ Failed to convert '{col}' to datetime:", e)
-                            final_types[col]= "datetime"
-                    else:
-                        final_types[col] = correct
-                    print(f"✅ Column '{col}' final type set to: {final_types[col]}")
-                else:
-                    if gpt_guess.lower() == "time":
-                        try:
-                            df[col] = pd.to_datetime(df[col], errors="coerce")
-                            print(f"⏳ Converted '{col}' to datetime")
-                            final_types[col] = "datetime"
-                        except Exception as e:
-                            print(f"❌ Failed to convert '{col}' to datetime:", e)
-                            final_types[col] = "datetime"
-                    else:
-                        final_types[col] = gpt_guess
-                    print(f"✅ Confirmed GPT guess for '{col}'")
+            #if gpt_guess.lower() != logic_guess.lower():
+             #   print(f"⚠️ Mismatch for '{col}': Code guessed '{logic_guess}', GPT guessed '{gpt_guess}'")
+              #  user_input = input(f"Do you agree with GPT’s guess '{gpt_guess}' for column '{col}'? (yes/no): ")
+               # if user_input.lower() == "no":
+                #    correct = input("Enter correct type (Time, Numeric, Ordinal, Category, ID, Free Text): ")
+                 #    if correct.lower() == "time":
+                   #     try:
+                  #          df[col] = pd.to_datetime(df[col], errors="coerce")
+                   #         print(f"⏳ Converted '{col}' to datetime")
+                    #        final_types[col] = "datetime"
+                    #    except Exception as e:
+                    #        print(f"❌ Failed to convert '{col}' to datetime:", e)
+                    #        final_types[col]= "datetime"
+                   # else:
+                   #     final_types[col] = correct
+                   # print(f"✅ Column '{col}' final type set to: {final_types[col]}")
+               # else:
+                #   if gpt_guess.lower() == "time":
+                  #      try:
+                    #        df[col] = pd.to_datetime(df[col], errors="coerce")
+                    #        print(f"⏳ Converted '{col}' to datetime")
+                     #       final_types[col] = "datetime"
+                     #   except Exception as e:
+                      #      print(f"❌ Failed to convert '{col}' to datetime:", e)
+                      #      final_types[col] = "datetime"
+                   # else:
+                     #   final_types[col] = gpt_guess
+                   # print(f"✅ Confirmed GPT guess for '{col}'")
             if gpt_guess.lower() != logic_guess.lower():
                 mismatches.append({
                     "column": col,

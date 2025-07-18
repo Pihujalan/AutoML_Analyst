@@ -7,5 +7,5 @@
   "Gender": "Category",
   "EverBenched": "Category",
   "ExperienceInCurrentDomain": "Numeric",
-  "LeaveOrNot": "Category"
+  "LeaveOrNot": "Ordinal"
 }

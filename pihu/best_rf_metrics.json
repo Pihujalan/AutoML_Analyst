@@ -1,7 +1,7 @@
 {
-    "r2": 1.0,
-    "mae": 0.0466,
-    "rmse": 0.1443,
+    "r2": 0.1853,
+    "mae": 3.8476,
+    "rmse": 4.6006,
     "cv": 7,
     "n_iter": 36,
     "param_grid_used": {
@@ -11,9 +11,9 @@
             1000
         ],
         "max_depth": [
-            30,
-            50,
-            null
+            10,
+            20,
+            30
         ],
         "min_samples_split": [
             2
@@ -31,17 +31,17 @@
         ]
     },
     "best_params": {
-        "n_estimators": 1000,
+        "n_estimators": 600,
         "min_samples_split": 2,
-        "min_samples_leaf": 1,
+        "min_samples_leaf": 2,
         "max_features": "sqrt",
-        "max_depth": 50,
+        "max_depth": 10,
         "bootstrap": true
     },
     "data_profile": {
-        "rows": 8729,
-        "columns": 6,
-        "target_std": 43.38,
-        "target_uniques": 2955
+        "rows": 2216,
+        "columns": 8,
+        "target_std": 5.1,
+        "target_uniques": 20
     }
 }
