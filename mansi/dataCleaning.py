@@ -7,7 +7,8 @@ from openai import OpenAI
 # 🔑 Multiple API keys: Mansi + Yours
 OPENROUTER_KEYS = [
     "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",  # Mansi’s
-    "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"   # Yours
+    "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",   # Yours
+    "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",  # User provided
 ]
 
 # 🔁 Rotating GPT client
@@ -73,7 +74,17 @@ def verify_with_gpt(col_name, sample_values, local_guess):
 # 🧠 Force integer type based on column name
 force_int_keywords = ["age", "year", "count", "number", "quantity"]
 
-def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None):
+def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None, user_confirmed_types=None):
+    import os
+    mismatches = []
+    gpt_failed = False
+    user_types_dict = {}
+    if user_confirmed_types is not None:
+        user_types_dict = {item['column']: item['user_type'] for item in user_confirmed_types}
+    final_types = {}
+    logic_guesses = {}
+    sample_values_dict = {}
+    # --- Usual cleaning logic up to type inference ---
     for col in df.columns:
         col_lower = col.lower()
         if is_numeric_dtype(df[col]):
@@ -83,159 +94,180 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
                     df[col] = df[col].fillna(mean_val)
                 try:
                     df[col] = df[col].astype(int)
-                    print(f"🔁 Forced column '{col}' to int based on name")
                 except:
-                    print(f"⚠️ Could not convert column '{col}' to int — maybe contains decimals or issues")
-
-
-    # 🧹 Remove duplicates
-    print(f"Total rows before removing duplicates: {df.shape[0]}")
-    duplicates = df.duplicated().sum()
+                    pass
     df.drop_duplicates(inplace=True)
-    print(f"Removed {duplicates} duplicates. Remaining rows: {df.shape[0]}")
-
-    # Standardize text columns
     for col in df.columns:
         if df[col].dtype.name == 'category':
-            # Ensure 'Unknown' is added to allowed categories
             if 'Unknown' not in df[col].cat.categories:
                 df[col] = df[col].cat.add_categories(['Unknown'])
             df[col] = df[col].fillna('Unknown')
-
         elif df[col].dtype == 'object':
             df[col] = df[col].fillna('Unknown')
-
-        # Clean string columns after fillna
         if df[col].dtype == 'object' or df[col].dtype.name == 'category':
             df[col] = df[col].astype(str).str.strip().str.title()
-
-    # 🔁 Convert types based on column names
-    print("Current column data types:\n", df.dtypes)
     for col in df.columns:
         if df[col].dtype == "object":
             if "date" in col.lower() or "year" in col.lower():
                 try:
                     df[col] = pd.to_datetime(df[col], format="%Y-%m-%d", errors="coerce")
-                    print(f"Converted '{col}' to datetime")
                 except:
-                    print(f"Could not convert '{col}' to datetime")
+                    pass
             else:
                 df[col] = df[col].astype("category")
-                print(f"Converted '{col}' to category")
-
-    # 🧠 GPT-Based Type Verification
-    print("\n🔍 Verifying column types with GPT...")
-    final_types = {}
+    # --- Type inference and mismatch collection ---
     for col in df.columns:
         non_null_values = df[col].dropna()
         if len(non_null_values) == 0:
-            print(f"⚠️ Skipping GPT check for column '{col}' — no non-null values")
             final_types[col] = "datetime" if col.lower().endswith("date") or col.lower().endswith("year") else "Unknown"
+            logic_guesses[col] = final_types[col]
+            sample_values_dict[col] = []
             continue
-
         sample_values = non_null_values.sample(min(5, len(non_null_values))).tolist()
         unique = df[col].nunique()
         dtype = df[col].dtype
-
-        # Your program's type guess
+        # Local guess
         if pd.api.types.is_datetime64_any_dtype(df[col]):
-            local_guess = "Time"
+            logic_guess = "Time"
         elif "year" in col.lower() and df[col].dropna().apply(lambda x: str(x).isdigit() and 1000 <= int(x) <= 2100).all():
-            local_guess = "Time"
+            logic_guess = "Time"
         elif unique == len(df[col]):
-            local_guess = "ID"
+            logic_guess = "ID"
         elif dtype in ['int64', 'float64'] and unique <= 15:
-            local_guess = "Ordinal"
+            logic_guess = "Ordinal"
         elif dtype in ['int64', 'float64']:
-            local_guess = "Numeric"
+            logic_guess = "Numeric"
         elif dtype.name == 'category' and unique <= 15:
-            local_guess = "Category"
+            logic_guess = "Category"
         else:
-            local_guess = "Free Text"
-        # 🎯 Filtering: Decide if this column really needs GPT verification
-        should_verify = False  # Default to skipping unless conditions met
-
-        # Skip if datetime
+            logic_guess = "Free Text"
+        logic_guesses[col] = logic_guess
+        sample_values_dict[col] = sample_values
+        should_verify = False
         if pd.api.types.is_datetime64_any_dtype(df[col]):
             should_verify = False
-
-        # Skip if column name has "date" or "year" and it's parsed as datetime
         elif ("date" in col.lower() or "year" in col.lower()) and pd.api.types.is_datetime64_any_dtype(df[col]):
             should_verify = False
-
-        # Skip if unique = total rows (likely ID)
         elif unique == len(df[col]):
             should_verify = False
-
-        # ✅ Check if logic might be wrong — these are edge cases
         elif dtype in ['int64', 'float64'] and 5 < unique <= 25:
-            should_verify = True  # Could be ordinal or numeric — confusing
-
+            should_verify = True
         elif dtype.name == 'category' and 10 < unique <= 30:
-            should_verify = True  # Could be free text vs. category
-
+            should_verify = True
         elif dtype.name == 'category' and unique > 30:
-            should_verify = False  # Too many values — assume free text or ID
-
+            should_verify = False
         elif dtype in ['int64', 'float64'] and unique <= 5:
-            should_verify = True  # Could be ordinal — worth verifying
-
+            should_verify = True
         elif dtype == object and unique <= 5:
-            should_verify = True  # Could be Category/Ordinal — check
-
+            should_verify = True
         else:
-            should_verify = False  # Everything else — trust logic
-
-        if not should_verify:
-            final_types[col] = "datetime" if local_guess.lower() == "time" else local_guess
-            print(f"🧠 Skipped GPT for column '{col}', used local guess: {local_guess}")
+            should_verify = False
+        # --- User override: set type and cast column ---
+        if col in user_types_dict:
+            user_type = user_types_dict[col]
+            final_types[col] = user_type
+            # Cast column to user type
+            if user_type.lower() == "numeric":
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+            elif user_type.lower() == "ordinal":
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+            elif user_type.lower() == "category":
+                df[col] = df[col].astype("category")
+            elif user_type.lower() == "time" or user_type.lower() == "datetime":
+                df[col] = pd.to_datetime(df[col], errors="coerce")
+            elif user_type.lower() == "id":
+                df[col] = df[col].astype(str)
+            elif user_type.lower() == "free text":
+                df[col] = df[col].astype(str)
             continue
-
-        gpt_guess = verify_with_gpt(col, sample_values, local_guess)
-
+        # --- No user override, check for mismatch ---
+        if not should_verify:
+            final_types[col] = "datetime" if logic_guess.lower() == "time" else logic_guess
+            continue
+        try:
+            gpt_guess = verify_with_gpt(col, sample_values, logic_guess)
+        except Exception:
+            gpt_failed = True
+            gpt_guess = None
+        if gpt_guess is None:
+            gpt_failed = True
         if gpt_guess:
             gpt_guess = gpt_guess.split()[0].strip().capitalize()
-            if gpt_guess.lower() != local_guess.lower():
-                print(f"⚠️ Mismatch for '{col}': Code guessed '{local_guess}', GPT guessed '{gpt_guess}'")
-                user_input = input(f"Do you agree with GPT’s guess '{gpt_guess}' for column '{col}'? (yes/no): ")
-                if user_input.lower() == "no":
-                    correct = input("Enter correct type (Time, Numeric, Ordinal, Category, ID, Free Text): ")
-                    if correct.lower() == "time":
-                        try:
-                            df[col] = pd.to_datetime(df[col], errors="coerce")
-                            print(f"⏳ Converted '{col}' to datetime")
-                            final_types[col] = "datetime"
-                        except Exception as e:
-                            print(f"❌ Failed to convert '{col}' to datetime:", e)
-                            final_types[col] = "Time"
-                    else:
-                        final_types[col] = correct
-                    print(f"✅ Column '{col}' final type set to: {final_types[col]}")
-                else:
-                    if gpt_guess.lower() == "time":
-                        try:
-                            df[col] = pd.to_datetime(df[col], errors="coerce")
-                            print(f"⏳ Converted '{col}' to datetime")
-                            final_types[col] = "datetime"
-                        except Exception as e:
-                            print(f"❌ Failed to convert '{col}' to datetime:", e)
-                            final_types[col] = "Time"
-                    else:
-                        final_types[col] = gpt_guess
-                    print(f"✅ Confirmed GPT guess for '{col}'")
+            if gpt_guess.lower() != logic_guess.lower():
+                mismatches.append({
+                    "column": col,
+                    "logic_guess": logic_guess,
+                    "gpt_guess": gpt_guess,
+                    "sample_values": sample_values
+                })
+                continue
             else:
-                final_types[col] = "datetime" if local_guess.lower() == "time" else local_guess
-                print(f"✅ Verified column '{col}' as '{local_guess}'")
+                final_types[col] = "datetime" if logic_guess.lower() == "time" else logic_guess
         else:
-            final_types[col] = "datetime" if local_guess.lower() == "time" else local_guess
-            print(f"⚠️ GPT unavailable. Used local guess for column '{col}'")
-
-
-    # 💾 Save final results
+            final_types[col] = "datetime" if logic_guess.lower() == "time" else logic_guess
+    # --- If GPT failed for any column, require user to classify all columns ---
+    if gpt_failed and not user_types_dict:
+        columns_to_review = []
+        for col in df.columns:
+            columns_to_review.append({
+                "column": col,
+                "logic_guess": logic_guesses.get(col, "Unknown"),
+                "gpt_guess": "Unavailable",
+                "sample_values": sample_values_dict.get(col, [])
+            })
+        return df, columns_to_review
+    # --- If mismatches exist and no user choices, return for UI ---
+    if mismatches and not user_types_dict:
+        return df, mismatches
+    # --- Save user choices if provided ---
+    if user_types_dict:
+        with open("user_column_types.json", "w") as f:
+            json.dump(user_types_dict, f, indent=2)
+    # --- Fill in any columns not yet assigned (e.g., mismatches resolved now) ---
+    for col in df.columns:
+        if col not in final_types:
+            if col in user_types_dict:
+                final_types[col] = user_types_dict[col]
+            else:
+                non_null_values = df[col].dropna()
+                unique = df[col].nunique()
+                dtype = df[col].dtype
+                if pd.api.types.is_datetime64_any_dtype(df[col]):
+                    logic_guess = "Time"
+                elif "year" in col.lower() and df[col].dropna().apply(lambda x: str(x).isdigit() and 1000 <= int(x) <= 2100).all():
+                    logic_guess = "Time"
+                elif unique == len(df[col]):
+                    logic_guess = "ID"
+                elif dtype in ['int64', 'float64'] and unique <= 15:
+                    logic_guess = "Ordinal"
+                elif dtype in ['int64', 'float64']:
+                    logic_guess = "Numeric"
+                elif dtype.name == 'category' and unique <= 15:
+                    logic_guess = "Category"
+                else:
+                    logic_guess = "Free Text"
+                final_types[col] = "datetime" if logic_guess.lower() == "time" else logic_guess
+    # --- Save final types ---
     with open("final_column_types.json", "w") as f:
         json.dump(final_types, f, indent=2)
-        print("✅ Saved verified column types to final_column_types.json")
-
+    # --- Continue with rest of cleaning logic (missing value fill, etc.) ---
+    for col in df.columns[df.isnull().any()]:
+        if is_integer_dtype(df[col]):
+            mean_val = round(df[col].mean())
+            df[col] = df[col].fillna(mean_val).astype(int)
+        elif is_numeric_dtype(df[col]):
+            non_null_values = df[col].dropna()
+            if all(float(x).is_integer() for x in non_null_values):
+                mean_val = round(df[col].mean())
+                df[col] = df[col].fillna(mean_val).astype(int)
+            else:
+                mean_val = round(df[col].mean(), 2)
+                df[col] = df[col].fillna(mean_val)
+        else:
+            df[col] = df[col].fillna("Unknown")
+    os.makedirs("data", exist_ok=True)
+    df.to_csv("data/cleaned_input.csv", index=False)
+    return df, []
 
 
     with open("final_column_types.json", "r") as f:

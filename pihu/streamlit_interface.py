@@ -4,6 +4,7 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from ml.fullmodel import run_full_pipeline
+import json
 
 # -------------------- Page Setup --------------------
 st.set_page_config(page_title="AutoML Analyst", layout="wide")
@@ -116,25 +117,63 @@ if st.session_state.confirmed and st.session_state.df is not None:
         st.session_state.df = None
         st.rerun()
 
-
     st.subheader("🧼 Cleaned Data Preview")
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
     from mansi.dataCleaning import clean_data_with_logs
 
-    # 🧼 Run cleaning only once and cache it in session_state
-    if "cleaned_df" not in st.session_state:
-        cleaned_df = clean_data_with_logs(st.session_state.df, log_path="logs/cleaning_log.txt")
+    # --- Handle type mismatches interactively ---
+    if "user_confirmed_types" not in st.session_state:
+        st.session_state.user_confirmed_types = None
+    if "cleaning_result" not in st.session_state:
+        # First run: no user choices yet
+        result = clean_data_with_logs(st.session_state.df, log_path="logs/cleaning_log.txt")
+        if isinstance(result, tuple) and len(result) == 2:
+            df, mismatches = result
+            st.session_state.cleaning_result = (df, mismatches)
+        else:
+            st.session_state.cleaning_result = (result, [])
+    # If user just submitted choices, rerun cleaning with those
+    if st.session_state.user_confirmed_types is not None:
+        cleaned_df = clean_data_with_logs(st.session_state.df, log_path="logs/cleaning_log.txt", user_confirmed_types=st.session_state.user_confirmed_types)
         st.session_state.cleaned_df = cleaned_df
+        st.session_state.cleaning_result = (cleaned_df, [])
+        st.session_state.user_confirmed_types = None
+    df, mismatches = st.session_state.cleaning_result
+    # If mismatches, show form for user to resolve
+    if mismatches:
+        st.warning("Some columns have conflicting type guesses. Please choose the correct type for each:")
+        with st.form("type_conflict_form"):
+            user_choices = []
+            for mismatch in mismatches:
+                col = mismatch["column"]
+                logic_guess = mismatch["logic_guess"]
+                gpt_guess = mismatch["gpt_guess"]
+                sample_values = mismatch["sample_values"]
+                st.write(f"**Column:** `{col}`")
+                st.write(f"Logic guess: `{logic_guess}` | GPT guess: `{gpt_guess}`")
+                st.write(f"Sample values: {sample_values}")
+                user_type = st.selectbox(
+                    f"Choose type for column '{col}'",
+                    [logic_guess, gpt_guess, "Time", "Numeric", "Ordinal", "Category", "ID", "Free Text"],
+                    key=f"type_select_{col}"
+                )
+                user_choices.append({"column": col, "user_type": user_type})
+            submitted = st.form_submit_button("Confirm Types")
+            if submitted:
+                st.session_state.user_confirmed_types = user_choices
+                # Clear cleaning_result to force rerun
+                st.session_state.cleaning_result = None
+                st.rerun()
+        st.stop()
+    # If no mismatches, show cleaned data and type summaries
+    if isinstance(df, tuple):
+        cleaned_df = df[0]
     else:
-        cleaned_df = st.session_state.cleaned_df
-
-    # ✅ Show cleaned data
+        cleaned_df = df
+    st.session_state.cleaned_df = cleaned_df
     st.dataframe(cleaned_df.head(10))
-
-    # ✅ Save and offer download
     cleaned_path = "data/cleaned_input.csv"
     cleaned_df.to_csv(cleaned_path, index=False)
-
     with open(cleaned_path, "rb") as f:
         st.download_button(
             "📥 Download Cleaned CSV",
@@ -142,17 +181,26 @@ if st.session_state.confirmed and st.session_state.df is not None:
             file_name="cleaned_input.csv",
             mime="text/csv"
         )
-    # ✅ Correct usage of cleaned_df
+    # Show type summaries
+    st.subheader("Final Column Types")
+    if os.path.exists("final_column_types.json"):
+        with open("final_column_types.json") as f:
+            final_types = json.load(f)
+        st.json(final_types)
+    st.subheader("User-Confirmed Column Types (if any)")
+    if os.path.exists("user_column_types.json"):
+        with open("user_column_types.json") as f:
+            user_types = json.load(f)
+        st.json(user_types)
+    # Target selection and pipeline
     numeric_columns = cleaned_df.select_dtypes(include=['int64', 'float64']).columns.tolist()
     target_col = st.selectbox("Select the numeric target column for model training", numeric_columns)
     cleaned_csv_path = "data/cleaned_input.csv"
     cleaned_df.to_csv(cleaned_csv_path, index=False)
-    # Run full pipeline
     if st.button("Run Full AutoML Pipeline"):
         run_full_pipeline(cleaned_csv_path=cleaned_csv_path, target_col=target_col)
         st.success("✅ Model training complete!")
-
-        # Optional: show missing summary
-        missing_df = pd.read_csv("mansi/missing_summary.csv")
-        st.subheader("Missing Value Summary")
-        st.dataframe(missing_df)
+        if os.path.exists("mansi/missing_summary.csv"):
+            missing_df = pd.read_csv("mansi/missing_summary.csv")
+            st.subheader("Missing Value Summary")
+            st.dataframe(missing_df)

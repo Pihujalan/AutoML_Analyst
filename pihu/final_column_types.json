@@ -1,9 +1,11 @@
 {
-  "age": "Numeric",
-  "sex": "Category",
-  "bmi": "Numeric",
-  "children": "Ordinal",
-  "smoker": "Category",
-  "region": "Category",
-  "charges": "ID"
+  "Education": "Category",
+  "JoiningYear": "datetime",
+  "City": "Category",
+  "PaymentTier": "Ordinal",
+  "Age": "Numeric",
+  "Gender": "Category",
+  "EverBenched": "Category",
+  "ExperienceInCurrentDomain": "Numeric",
+  "LeaveOrNot": "Category"
 }
