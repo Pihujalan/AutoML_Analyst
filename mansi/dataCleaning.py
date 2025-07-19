@@ -6,7 +6,7 @@ from openai import OpenAI
 
 # 🔑 Multiple API keys: Mansi + Yours
 OPENROUTER_KEYS = [
-    "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",  # Mansi’s
+    "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",  # Mansi’s
     "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",   # Yours
     "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",  # User provided
 ]

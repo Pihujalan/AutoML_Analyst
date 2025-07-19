@@ -45,10 +45,12 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
     with open("../mansi/final_column_types.json", "r") as f:
         final_column_types = json.load(f)
     # Load dataset
+    EXCLUDE_COLS = {'Unnamed: 0', 'id', 'ID', 'index'}
     #df = pd.read_csv("mansi/cleaned_input.csv")
     df = pd.read_csv(cleaned_csv_path)
     df.columns = [sanitize_column_name(col) for col in df.columns]
     target_col = sanitize_column_name(target_col)
+    df = df.drop(columns=[col for col in df.columns if col.strip() in EXCLUDE_COLS], errors="ignore")
 
 
     print("Running pipeline on columns:", df.columns.tolist())
@@ -97,8 +99,10 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
                 plt.savefig(f"plots/{col}_boxplot.png")
                 plt.close()
 
-    numeric_columns = [col for col, col_type in final_column_types.items() if col_type.lower() == "numeric"]
-    category_columns=[col for col,col_type in final_column_types.items() if col_type.lower()=="category"]
+    numeric_columns = [sanitize_column_name(col) for col, col_type in final_column_types.items() if col_type.lower() == "numeric"]
+
+    category_columns = [sanitize_column_name(col) for col, col_type in final_column_types.items() if col_type.lower() == "category"]
+
 
     for num_col in numeric_columns:
         for cat_col in category_columns:
@@ -182,11 +186,23 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
 
 
     # HEATMAP OF CORRELATIONS
-    if len(numeric_columns) > 1:
-        plt.figure(figsize=(10, 8))
-        corr_matrix = df[numeric_columns].corr()
+    # HEATMAP OF CORRELATIONS
+        # HEATMAP OF CORRELATIONS
+        existing_numeric_columns = [col for col in numeric_columns if col in df.columns]
 
-        sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt=".2f", square=True, linewidths=0.5)
+        if len(existing_numeric_columns) > 1:
+            plt.figure(figsize=(10, 8))
+            corr_matrix = df[existing_numeric_columns].corr()
+            sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt=".2f", square=True, linewidths=0.5)
+            plt.title("Correlation Heatmap of Numeric Columns")
+            plt.tight_layout()
+            plt.savefig("plots/correlation_heatmap.png")
+            plt.close()
+        else:
+            print("❌ No matching numeric columns found in dataframe. Skipping correlation heatmap.")
+
+
+        # sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt=".2f", square=True, linewidths=0.5)
         plt.title("Correlation Heatmap of Numeric Columns")
         plt.tight_layout()
         plt.savefig("plots/correlation_heatmap.png")
@@ -1314,7 +1330,15 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
     with open("mansi/target_config.json", "r") as f:
         target_col = json.load(f)["target_column"]
 
+    # ===== FIX FOR NaN VALUES BEFORE MODEL TRAINING =====
     print("\n🔥 Training Gradient Boosting model...")
+    # Drop rows in X_train/X_test that have NaNs and sync y accordingly
+    X_train = X_train.dropna()
+    X_test = X_test.dropna()
+    y_train = y_train.loc[X_train.index]
+    y_test = y_test.loc[X_test.index] 
+
+    
     gbm_model, gbm_used_type, gbm_test_metrics = train_gbm_model(X_train, y_train, X_test, y_test, target_col)
     print("\n🤖 Comparing RF vs GBM...")
 
@@ -1509,10 +1533,11 @@ def run_full_pipeline(cleaned_csv_path="data/cleaned_input.csv", target_col=None
         test_preds = model.predict(X_test)
 
         # Define potential segment columns (you can customize this)
-        segment_columns = [
-            'education', 'joiningyear', 'city', 'paymenttier',
-            'gender', 'everbenched', 'experienceincurrentdomain', 'leaveornot'
-        ]
+        segment_columns = df.select_dtypes(include=['object', 'category']).columns.tolist()
+        # Optional: exclude unwanted columns
+        ignore_cols = {'Unnamed: 0', 'id', 'ID'}
+        segment_columns = [col for col in segment_columns if col not in ignore_cols]
+
 
         # Create folder for plots if it doesn't exist
         os.makedirs(f"plots/segments_{model_name}", exist_ok=True)
