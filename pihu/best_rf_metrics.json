@@ -1,7 +1,7 @@
 {
-    "r2": 0.898,
-    "mae": 71.1446,
-    "rmse": 181.5709,
+    "r2": 1.0,
+    "mae": 0.2281,
+    "rmse": 0.4027,
     "cv": 7,
     "n_iter": 36,
     "param_grid_used": {
@@ -39,9 +39,9 @@
         "bootstrap": true
     },
     "data_profile": {
-        "rows": 7840,
-        "columns": 18,
-        "target_std": 568.59,
-        "target_uniques": 4942
+        "rows": 1540,
+        "columns": 6,
+        "target_std": 88.51,
+        "target_uniques": 1446
     }
 }

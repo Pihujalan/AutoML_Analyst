@@ -111,7 +111,7 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
             datetime_keywords = ["date", "year", "dob", "birth", "timestamp", "time", "created", "modified", "registered"]
             if any(key in col.lower() for key in datetime_keywords):
                 try:
-                    df[col] = pd.to_datetime(df[col], errors="coerce", infer_datetime_format=True)
+                    df[col] = pd.to_datetime(df[col], errors="coerce")
                     print(f"Converted '{col}' to datetime")
                 except Exception as e:
                     print(f"Could not convert '{col}' to datetime: {e}")

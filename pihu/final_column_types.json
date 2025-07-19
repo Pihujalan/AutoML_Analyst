@@ -1,21 +1,9 @@
 {
-  "Unnamed: 0": "ID",
-  "Row ID": "ID",
-  "Order ID": "Free Text",
-  "Order Date": "datetime",
-  "Ship Date": "datetime",
-  "Ship Mode": "Category",
-  "Customer ID": "Free Text",
-  "Customer Name": "Free Text",
-  "Segment": "Category",
-  "Country": "Category",
-  "City": "Free Text",
-  "State": "Free Text",
-  "Postal Code": "Numeric",
-  "Region": "Category",
-  "Product ID": "Free Text",
-  "Category": "Category",
-  "Sub-Category": "Free Text",
-  "Product Name": "Free Text",
-  "Sales": "Numeric"
+  "Date": "datetime",
+  "High": "Numeric",
+  "Low": "Numeric",
+  "Open": "Numeric",
+  "Close": "Numeric",
+  "Volume": "Numeric",
+  "Adj Close": "Numeric"
 }

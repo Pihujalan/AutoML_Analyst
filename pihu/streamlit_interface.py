@@ -3,8 +3,9 @@ import pandas as pd
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from ml.fullmodel import run_full_pipeline
+from ml.fullmodel import run_pattern_analysis_only, run_model_training_only
 import json
+import threading
 
 # -------------------- Page Setup --------------------
 st.set_page_config(page_title="AutoML Analyst", layout="wide")
@@ -206,10 +207,59 @@ if st.session_state.confirmed and st.session_state.df is not None:
     print("Target column selected:", target_col)
    
 
-    if st.button("Run Full AutoML Pipeline"):
-        run_full_pipeline(cleaned_csv_path=cleaned_csv_path, target_col=target_col)
+   
+
+
+
+    # Add this at the top if not already there
+    if "training_complete" not in st.session_state:
+        st.session_state["training_complete"] = False
+
+    # Trigger pipeline
+    if st.button("Run Full AutoML Pipeline 🚀"):
+        
+        # STEP 1: Run pattern analysis first
+        with st.spinner("🔍 Running pattern analysis..."):
+            run_pattern_analysis_only(cleaned_csv_path=cleaned_csv_path, target_col=target_col)
+        st.success("✅ Pattern analysis complete!")
+       
+
+        import glob
+
+        st.subheader("📊 Auto-Generated Pattern Visualizations")
+
+        # Define plot categories and display logic
+        plot_categories = {
+            "Histograms": "histogram",
+            "Boxplots": "boxplot",
+            "Violin Plots": "violinplot",
+            "Count Plots": "countplot",
+            "Bar Plots": "barplot",
+            "Time Series": "timeseries",
+            "Scatter Plots": "scatterplot",
+            "SHAP Summary": "shap",
+            "Feature Importance": "feature_importance",
+            "Correlation Heatmap": "correlation",
+            "Conflicts": "conflict",
+            "Model Test Evaluation": "test_"
+        }
+
+        # Dynamically loop and display plots
+        for title, keyword in plot_categories.items():
+            matching_files = glob.glob(f"plots/*{keyword}*.png")
+            if matching_files:
+                st.markdown(f"### 🔹 {title}")
+                for file in matching_files:
+                    st.image(file, use_column_width=True, caption=os.path.basename(file))
+        # STEP 3: Start model training in background
+        st.warning("⚙️ Model training started in background... Please wait.")
+
+        def background_training():
+            run_model_training_only(cleaned_csv_path=cleaned_csv_path, target_col=target_col)
+            st.session_state["training_complete"] = True  # flag will be checked by Streamlit later
+
+        threading.Thread(target=background_training).start()
+
+    # STEP 4: Notify user when training completes
+    if st.session_state.get("training_complete", False):
         st.success("✅ Model training complete!")
-        if os.path.exists("mansi/missing_summary.csv"):
-            missing_df = pd.read_csv("mansi/missing_summary.csv")
-            st.subheader("Missing Value Summary")
-            st.dataframe(missing_df)
