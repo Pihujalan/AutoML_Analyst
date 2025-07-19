@@ -2,6 +2,7 @@
 pihu/best_rf_model.pkl
 # Model files
 *.pkl
+!pihu/mansi/encoders/City_encoder.pkl
 
 # CSV inputs
 *.csv
