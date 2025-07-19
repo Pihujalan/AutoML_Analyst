@@ -193,7 +193,13 @@ if st.session_state.confirmed and st.session_state.df is not None:
             user_types = json.load(f)
         st.json(user_types)
     # Target selection and pipeline
-    numeric_columns = cleaned_df.select_dtypes(include=['int64', 'float64']).columns.tolist()
+    EXCLUDE_COLS = {'Unnamed: 0', 'id', 'ID', 'index'}
+
+    numeric_columns = [
+    col for col in cleaned_df.select_dtypes(include=['int64', 'float64']).columns.tolist()
+    if col.strip() not in EXCLUDE_COLS
+]
+
     target_col = st.selectbox("Select the numeric target column for model training", numeric_columns)
     cleaned_csv_path = "data/cleaned_input.csv"
     cleaned_df.to_csv(cleaned_csv_path, index=False)
