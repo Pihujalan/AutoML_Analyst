@@ -1,4 +1,5 @@
 column_name,num_missing,percent_missing
+<<<<<<< HEAD
 Row_ID,0,0.0
 Order_ID,0,0.0
 Order_Date,5841,59.60204081632653
@@ -17,3 +18,4 @@ Category,0,0.0
 Sub-Category,0,0.0
 Product_Name,0,0.0
 Sales,0,0.0
+=======
