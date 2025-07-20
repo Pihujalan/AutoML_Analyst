@@ -1,0 +1,7 @@
+• 'Row_ID' ranges from 1.00 to 9800.00, mean: 4900.50, std dev: 2829.16. The distribution appears approximately symmetric.
+• 'Row_ID' vs 'Sales' shows a weak or no clear correlation (r = 0.00).
+• Top categories in 'City' are: New York City (9.1%), Los Angeles (7.4%), Philadelphia (5.4%).
+• 'Postal_Code' ranges from 1040.00 to 99301.00, mean: 55273.32, std dev: 32023.23. The distribution appears approximately symmetric.
+• 'Postal_Code' vs 'Sales' shows a weak or no clear correlation (r = -0.02).
+• 'year' ranges from 2015.00 to 2018.00, mean: 2016.73, std dev: 1.12. The distribution appears approximately symmetric.
+• 'year' vs 'Sales' shows a weak or no clear correlation (r = -0.01).
