@@ -86,6 +86,19 @@ force_int_keywords = ["age", "year", "count", "number", "quantity"]
 
 def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None, user_confirmed_types=None):
     import os
+    def smart_datetime_parser(series):
+        parsed_us = pd.to_datetime(series, errors="coerce", dayfirst=False)
+        parsed_uk = pd.to_datetime(series, errors="coerce", dayfirst=True)
+
+        us_valid = parsed_us.notna().sum()
+        uk_valid = parsed_uk.notna().sum()
+
+        if uk_valid > us_valid:
+            print(f"📅 Using UK-style parsing for '{series.name}' (dayfirst=True)")
+            return parsed_uk
+        else:
+            print(f"📅 Using US-style parsing for '{series.name}' (dayfirst=False)")
+            return parsed_us
     mismatches = []
     gpt_failed = False
     user_types_dict = {}
@@ -107,13 +120,21 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
                 except:
                     pass
     df.drop_duplicates(inplace=True)
+    datetime_keywords = ["date", "year", "dob", "birth", "timestamp", "time", "created", "modified", "registered"]
+
     for col in df.columns:
         if df[col].dtype.name == 'category':
             if 'Unknown' not in df[col].cat.categories:
                 df[col] = df[col].cat.add_categories(['Unknown'])
             df[col] = df[col].fillna('Unknown')
+
         elif df[col].dtype == 'object':
-            df[col] = df[col].fillna('Unknown')
+            # Only fillna("Unknown") if NOT likely a date
+            if any(key in col.lower() for key in datetime_keywords):
+                pass  # leave as is, will convert to datetime below
+            else:
+                df[col] = df[col].fillna('Unknown')
+
         if df[col].dtype == 'object' or df[col].dtype.name == 'category':
             df[col] = df[col].astype(str).str.strip().str.title()
     for col in df.columns:
@@ -121,11 +142,11 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
             datetime_keywords = ["date", "year", "dob", "birth", "timestamp", "time", "created", "modified", "registered"]
             if any(key in col.lower() for key in datetime_keywords):
                 try:
-                    df[col] = pd.to_datetime(df[col], errors="coerce")
+                    df[col] = smart_datetime_parser(df[col])
                     print(f"Converted '{col}' to datetime")
                 except Exception as e:
                     print(f"Could not convert '{col}' to datetime: {e}")
-                    df[col] = pd.to_datetime(df[col], format="%Y-%m-%d", errors="coerce")
+                    #df[col] = pd.to_datetime(df[col], format="%Y-%m-%d", errors="coerce")
                 except:
                     pass
             else:
@@ -189,7 +210,7 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
             elif user_type.lower() == "category":
                 df[col] = df[col].astype("category")
             elif user_type.lower() == "time" or user_type.lower() == "datetime":
-                df[col] = pd.to_datetime(df[col], errors="coerce")
+                df[col] = smart_datetime_parser(df[col])
             elif user_type.lower() == "id":
                 df[col] = df[col].astype(str)
             elif user_type.lower() == "free text":
@@ -294,25 +315,8 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
     # --- Save final types ---
     with open("final_column_types.json", "w") as f:
         json.dump(final_types, f, indent=2)
-    # --- Continue with rest of cleaning logic (missing value fill, etc.) ---
-    for col in df.columns[df.isnull().any()]:
-        if is_integer_dtype(df[col]):
-            mean_val = round(df[col].mean())
-            df[col] = df[col].fillna(mean_val).astype(int)
-        elif is_numeric_dtype(df[col]):
-            non_null_values = df[col].dropna()
-            if all(float(x).is_integer() for x in non_null_values):
-                mean_val = round(df[col].mean())
-                df[col] = df[col].fillna(mean_val).astype(int)
-            else:
-                mean_val = round(df[col].mean(), 2)
-                df[col] = df[col].fillna(mean_val)
-        else:
-            df[col] = df[col].fillna("Unknown")
-    os.makedirs("data", exist_ok=True)
-    df.to_csv("data/cleaned_input.csv", index=False)
-    return df, []
-
+ 
+   
 
     with open("final_column_types.json", "r") as f:
         column_types = json.load(f)
@@ -361,8 +365,9 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
             print(f"✅ Filled missing values in text column '{col}' with 'Unknown'")
 
 
-
-
-    df.to_csv("cleaned_input.csv", index=False)
+    os.makedirs("data", exist_ok=True)
+    df.to_csv("data/cleaned_input.csv", index=False)
     print("✅ Cleaned data saved to 'cleaned_input.csv'")
-    return df
+    return df, [] 
+
+   
