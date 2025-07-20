@@ -1,7 +1,7 @@
 {
     "r2": 1.0,
-    "mae": 0.2281,
-    "rmse": 0.4027,
+    "mae": 0.139,
+    "rmse": 0.3311,
     "cv": 7,
     "n_iter": 36,
     "param_grid_used": {
@@ -31,17 +31,17 @@
         ]
     },
     "best_params": {
-        "n_estimators": 600,
+        "n_estimators": 1000,
         "min_samples_split": 2,
-        "min_samples_leaf": 1,
+        "min_samples_leaf": 2,
         "max_features": "sqrt",
         "max_depth": 30,
         "bootstrap": true
     },
     "data_profile": {
-        "rows": 1540,
+        "rows": 4831,
         "columns": 6,
-        "target_std": 88.51,
-        "target_uniques": 1446
+        "target_std": 48.81,
+        "target_uniques": 4422
     }
 }

@@ -1,9 +1,9 @@
 {
   "Date": "datetime",
+  "Open": "Numeric",
   "High": "Numeric",
   "Low": "Numeric",
-  "Open": "Numeric",
   "Close": "Numeric",
-  "Volume": "Numeric",
-  "Adj Close": "Numeric"
+  "Adj Close": "Numeric",
+  "Volume": "Numeric"
 }
