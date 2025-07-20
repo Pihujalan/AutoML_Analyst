@@ -26,6 +26,91 @@ from dateutil.parser import parse
 from pandas.api.types import is_datetime64_any_dtype, is_object_dtype
 import streamlit as st
 import glob
+import requests
+
+
+# GPT report function using Together.ai
+def call_llama3_business_report(prompt):
+    url = "https://api.together.xyz/v1/chat/completions"
+    headers = {
+        "Authorization": "Bearer a81e0b6137ae03b2c1f53be56b1e1a99bfbe474de314a18694de143cc145a378",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": "meta-llama/Llama-3-70b-chat-hf",
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are a senior business data analyst. Write a full, in-depth business report based on data pattern analysis. Include tables, trend summaries, risks, recommendations, and graph interpretations."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "temperature": 0.4,
+        "max_tokens": 4096
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()["choices"][0]["message"]["content"]
+
+
+#functions for explanation of graphs
+def describe_numeric_col(df, col):
+    mean = df[col].mean()
+    std = df[col].std()
+    skew = df[col].skew()
+    min_val = df[col].min()
+    max_val = df[col].max()
+
+    skew_desc = (
+        "right-skewed" if skew > 1 else
+        "left-skewed" if skew < -1 else
+        "approximately symmetric"
+    )
+
+    return (
+        f"• '{col}' ranges from {min_val:.2f} to {max_val:.2f}, "
+        f"mean: {mean:.2f}, std dev: {std:.2f}. "
+        f"The distribution appears {skew_desc}."
+    )
+
+def describe_categorical_col(df, col):
+    counts = df[col].value_counts(normalize=True).head(3)
+    parts = [f"{idx} ({val:.1%})" for idx, val in counts.items()]
+    return f"• Top categories in '{col}' are: " + ", ".join(parts) + "."
+
+def describe_relationship(df, x_col, target_col):
+    if pd.api.types.is_numeric_dtype(df[x_col]) and pd.api.types.is_numeric_dtype(df[target_col]):
+        corr = df[[x_col, target_col]].corr().iloc[0, 1]
+        direction = (
+            "strong positive" if corr > 0.6 else
+            "strong negative" if corr < -0.6 else
+            "weak or no clear"
+        )
+        return f"• '{x_col}' vs '{target_col}' shows a {direction} correlation (r = {corr:.2f})."
+    return None
+
+def generate_pattern_graph_descriptions(df, target_col):
+    summaries = []
+
+    for col in df.columns:
+        if col == target_col:
+            continue
+
+        if pd.api.types.is_numeric_dtype(df[col]):
+            summaries.append(describe_numeric_col(df, col))
+            rel = describe_relationship(df, col, target_col)
+            if rel:
+                summaries.append(rel)
+
+        elif pd.api.types.is_categorical_dtype(df[col]) or df[col].dtype == 'object':
+            summaries.append(describe_categorical_col(df, col))
+
+    return "\n".join(summaries)
 
 def sanitize_column_name(name):
     # Replace forbidden JSON characters for LightGBM with underscore
@@ -369,7 +454,9 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
                 "recommended_encoding": suggestion
             }
     print(json.dumps(encoding_suggestions, indent=4))
+    
 
+    
     # === Pihu's Additional Functions ===
 
     def classify_columns(df):
@@ -837,7 +924,7 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
     print("\n Spearman Correlation (Ordinal/Skewed):")
     print(spearman_corr.fillna("-"))
 
-    print("\nCramér’s V Correlation (Categorical):")
+    print("\nCramér's V Correlation (Categorical):")
     print(cramers_corr.fillna("-"))
 
 
@@ -928,6 +1015,162 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
     # Final Check
     print("Final Column Data Types:")
     print(df_cleaned.dtypes)
+    def generate_segment_analysis(df, target_col, numeric_columns, categorical_columns):
+        """
+        Perform segment-wise summary analysis by splitting the data on categorical variables
+        and showing stats (mean, count) of numeric variables for each.
+        """
+        summary_texts = []
+        for cat_col in categorical_columns:
+            if cat_col == target_col or cat_col not in df.columns:
+                continue
+            try:
+                group_stats = df.groupby(cat_col)[numeric_columns].agg(['mean', 'count']).round(2)
+                summary_texts.append(f"Summary by {cat_col}:\n{group_stats}\n")
+            except Exception as e:
+                continue
+        return '\n'.join(summary_texts)
+
+    # 🧠 Auto-generate graph insights (textual summaries)
+    graph_descriptions = generate_pattern_graph_descriptions(df, target_col)
+    
+    with open("mansi/graph_descriptions.txt", "w", encoding="utf-8") as f:
+        f.write(graph_descriptions)
+
+    # ✅ Print basic graph summary
+    print("📊 Pattern Summary from Visual Distributions:")
+    print(graph_descriptions)
+    segment_summary = generate_segment_analysis(df, target_col, numeric_columns, category_columns)
+    with open("mansi/segment_summary.txt", "w", encoding="utf-8") as f:
+        f.write(segment_summary)
+
+    outlier_report = f"{len(outlier_rows)} rows detected as outliers using IQR method."
+    with open("mansi/outlier_report.txt", "w", encoding="utf-8") as f:
+        f.write(outlier_report)
+    # Right before using time_columns for trend analysis:
+    time_columns = [col for col in time_columns if col in df.columns]
+    # Only run the analysis IF there is any valid time column
+    if time_columns:
+        time_trend_summary = analyze_time_patterns(df, time_col_name=time_columns[0], target_cols=numeric_columns)
+    else:
+        print("No valid time columns found in this file.")
+        time_trend_summary = "No time-based trend analysis available."
+
+    with open("mansi/time_trend_summary.txt", "w", encoding="utf-8") as f:
+        f.write(time_trend_summary)
+    
+    
+    # Convert test summaries to string
+    with open("mansi/chi_square_summary.txt", "r", encoding="utf-8") as f:
+        chi_summary = f.read()
+
+    with open("mansi/anova_summary.txt", "r", encoding="utf-8") as f:
+        anova_summary = f.read()
+
+    with open("mansi/pearson_spearman_summary.txt", "r", encoding="utf-8") as f:
+        correlation_summary = f.read()
+
+    with open("mansi/cramers_v_summary.txt", "r", encoding="utf-8") as f:
+        cramers_v_summary = f.read()
+
+
+    # ✅ Build GPT Prompt
+    pattern_prompt = f"""
+    You are a SENIOR BUSINESS INTELLIGENCE CONSULTANT with 15+ years in analytics, business strategy, and executive reporting.
+
+    🎯 YOUR TASK: Write a comprehensive, 100+ line executive business report that transforms the pattern analysis of the following dataset into actionable business intelligence for C-level decision-makers.
+
+    MATERIALS YOU MUST INCORPORATE:
+
+    Descriptive statistics and summary tables for all key numeric columns (mean, std, min, max, percentiles, skew, kurtosis)
+
+    Insights from all performed graphs: histograms, boxplots, countplots, scatterplots, violinplots, segment-wise barplots, correlation heatmap, etc.
+
+    USE THESE actual outputs (insert their contents directly in the report at the right spots):
+
+    Graph Summary Observations:
+    {graph_descriptions}
+
+    Segment-Wise Summary:
+    {segment_summary}
+
+    Missing Value Report & Outlier Detection:
+    {outlier_report}
+
+    Time-based Trend Analysis:
+    {time_trend_summary}
+
+    Chi-Square Test:
+    {chi_summary}
+
+    ANOVA/T-Test:
+    {anova_summary}
+
+    Pearson & Spearman Correlation:
+    {correlation_summary}
+
+    Cramér's V (Categorical Assoc.):
+    {cramers_v_summary}
+
+    REPORT STRUCTURE (follow exactly):
+
+    🎯 Executive Summary
+
+    📉 Data Quality & Business Risk
+
+    🔍 Insights from Visualizations & Stats
+
+    Include summary tables for key numeric variables
+
+    Use easy-to-read bullet points for business insights
+
+    🔁 Correlations & Associations
+
+    Insert correlation tables and interpret their business meaning
+
+    🧪 Statistical Test Results
+
+    Use individual result blocks and table summaries
+
+    🧠 Segment-Level Observations
+
+    Insert major segment findings and relevant crosstab tables/bullets
+
+    ⏱️ Time Trends
+
+    ⚠️ Business Risks & Data Limitations
+
+    💡 Strategic Recommendations
+
+    📊 Visual Dashboards & Monitoring Suggestions
+
+    WRITING STYLE:
+
+    Business consultant/executive tone (not technical)
+
+    Use section headers, subheaders, bullet lists, summary tables, and short paragraphs
+
+    Present clear metric values, percentages, and number ranges wherever possible
+
+    Provide strategic takeaways, not just stats
+
+    Highlight actionable business insights and risks at each stage
+
+    For each section, explain what the pattern means for business outcomes or decisions
+    """
+
+    # ✅ Call GPT to generate full pattern analysis report
+    print("\n🧠 Generating GPT-driven Business Report...")
+    llama_report = call_llama3_business_report(pattern_prompt)
+
+    # ✅ Save to file
+    os.makedirs("mansi", exist_ok=True)
+    with open("mansi/final_pattern_report.txt", "w", encoding="utf-8") as f:
+        f.write(llama_report)
+
+    print("✅ GPT report saved to: mansi/final_pattern_report.txt")
+
+
 
     # Descriptive Statistics Summary
 
