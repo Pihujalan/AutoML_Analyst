@@ -6,6 +6,20 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from ml.fullmodel import run_pattern_analysis_only, run_model_training_only
 import json
 import threading
+import base64
+import glob
+
+
+def display_report(report_path):
+    with open(report_path, "r") as file:
+        content = file.read()
+
+    st.subheader("📄 Insight Report")
+    with st.container():
+        st.markdown(content, unsafe_allow_html=True)  
+    b64 = base64.b64encode(content.encode()).decode()
+    href = f'<a href="data:file/txt;base64,{b64}" download="final_pattern_report.txt">📥 Download Report as TXT</a>'
+    st.markdown(href, unsafe_allow_html=True)
 
 # -------------------- Page Setup --------------------
 st.set_page_config(page_title="AutoML Analyst", layout="wide")
@@ -207,9 +221,6 @@ if st.session_state.confirmed and st.session_state.df is not None:
     print("Target column selected:", target_col)
    
 
-   
-
-
 
     # Add this at the top if not already there
     if "training_complete" not in st.session_state:
@@ -222,10 +233,8 @@ if st.session_state.confirmed and st.session_state.df is not None:
         with st.spinner("🔍 Running pattern analysis..."):
             run_pattern_analysis_only(cleaned_csv_path=cleaned_csv_path, target_col=target_col)
         st.success("✅ Pattern analysis complete!")
-       
-
-        import glob
-
+        display_report("mansi/final_pattern_report.txt")
+        
         st.subheader("📊 Auto-Generated Pattern Visualizations")
 
         # Define plot categories and display logic

@@ -1,69 +1,57 @@
 **Executive Summary**
 
-This comprehensive business report provides actionable insights from the analysis of a dataset containing sales data. Our analysis reveals a lack of correlation between Row_ID, Postal_Code, and year with Sales, indicating that these variables do not significantly impact sales performance. However, we identify top-performing cities, with New York City, Los Angeles, and Philadelphia contributing 21.9% of total sales. We also observe a symmetric distribution of Postal_Code and year, suggesting a balanced representation of data across these variables. Our report highlights key business risks, recommendations, and strategic opportunities for improvement.
+This comprehensive business report provides actionable insights from the analysis of a dataset containing stock market data. The report highlights key trends, correlations, and associations between variables, as well as identifies business risks and limitations. The findings are presented in a clear and concise manner, enabling C-level decision-makers to make informed strategic decisions.
 
 **Data Quality & Business Risk**
 
-Our analysis detects no outliers using the IQR method, ensuring data quality and reliability. However, the lack of time-based trend analysis available limits our understanding of sales patterns over time. Moreover, the absence of correlations between key variables and Sales may indicate that other factors, not captured in this dataset, are driving sales performance.
+The dataset appears to be of high quality, with no missing values or outliers detected. However, the lack of time-based trend analysis available may limit the ability to identify seasonal or periodic patterns in the data.
 
 **Insights from Visualizations & Stats**
 
-**Summary Statistics:**
+**Summary Statistics**
 
 | Variable | Mean | Std Dev | Min | Max | Skew | Kurtosis |
 | --- | --- | --- | --- | --- | --- | --- |
-| Row_ID | 4900.50 | 2829.16 | 1.00 | 9800.00 | 0.00 | -1.20 |
-| Postal_Code | 55273.32 | 32023.23 | 1040.00 | 99301.00 | 0.00 | -1.20 |
-| year | 2016.73 | 1.12 | 2015.00 | 2018.00 | 0.00 | -1.20 |
+| High | 140.30 | 89.00 | 40.74 | 349.67 | 0.00 | -0.50 |
+| Low | 137.48 | 87.03 | 39.72 | 342.20 | 0.00 | -0.50 |
+| Open | 138.93 | 88.07 | 40.34 | 344.62 | 0.00 | -0.50 |
+| Close | 138.97 | 88.06 | 40.29 | 343.11 | 0.00 | -0.50 |
+| Volume | 30096868.99 | 13978621.33 | 7425600.00 | 169164000.00 | 1.50 | 2.50 |
+| Year | 2018.36 | 2.22 | 2015.00 | 2022.00 | 0.00 | -0.50 |
 
-**Key Insights:**
+**Key Insights**
 
-* Row_ID, Postal_Code, and year do not show clear correlations with Sales, indicating that these variables may not be significant drivers of sales performance.
-* Top-performing cities are New York City (9.1%), Los Angeles (7.4%), and Philadelphia (5.4%), contributing 21.9% of total sales.
-* The symmetric distribution of Postal_Code and year suggests a balanced representation of data across these variables.
+* The distributions of High, Low, Open, and Close prices appear approximately symmetric, indicating a stable market.
+* The Volume variable is right-skewed, suggesting that there are a few extreme values that may be influencing the overall trend.
+* The Year variable is approximately symmetric, indicating a consistent trend over time.
 
 **Correlations & Associations**
 
-**Correlation Matrix:**
+**Correlation Matrix**
 
-|  | Row_ID | Postal_Code | year | Sales |
-| --- | --- | --- | --- | --- |
-| Row_ID | 1.00 | 0.00 | 0.00 | 0.00 |
-| Postal_Code | 0.00 | 1.00 | 0.00 | -0.02 |
-| year | 0.00 | 0.00 | 1.00 | -0.01 |
-| Sales | 0.00 | -0.02 | -0.01 | 1.00 |
+|  | High | Low | Open | Close | Volume | Year | Adj_Close |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| High | 1.00 | 0.99 | 0.99 | 0.99 | -0.04 | 0.94 | 1.00 |
+| Low | 0.99 | 1.00 | 0.99 | 0.99 | -0.04 | 0.94 | 1.00 |
+| Open | 0.99 | 0.99 | 1.00 | 0.99 | -0.04 | 0.94 | 1.00 |
+| Close | 0.99 | 0.99 | 0.99 | 1.00 | -0.04 | 0.94 | 1.00 |
+| Volume | -0.04 | -0.04 | -0.04 | -0.04 | 1.00 | 0.00 | -0.04 |
+| Year | 0.94 | 0.94 | 0.94 | 0.94 | 0.00 | 1.00 | 0.94 |
+| Adj_Close | 1.00 | 1.00 | 1.00 | 1.00 | -0.04 | 0.94 | 1.00 |
 
-**Interpretation:**
+**Key Associations**
 
-* The correlation matrix confirms the lack of correlations between Row_ID, Postal_Code, and year with Sales, indicating that these variables do not significantly impact sales performance.
+* There is a strong positive correlation between High, Low, Open, and Close prices, indicating a consistent market trend.
+* There is a weak or no clear correlation between Volume and other variables, suggesting that trading volume may not be a significant factor in price movements.
+* There is a strong positive correlation between Year and Adj_Close, indicating a consistent upward trend in stock prices over time.
 
 **Statistical Test Results**
 
-**Chi-Square Test:**
-No significant associations were detected between categorical variables.
-
-**ANOVA/T-Test:**
-No significant differences were detected between groups.
-
-**Pearson & Spearman Correlation:**
-No significant correlations were detected between numeric variables.
-
-**Cramér's V (Categorical Assoc.):**
-No significant associations were detected between categorical variables.
+No significant results to report.
 
 **Segment-Level Observations**
 
-**Top-Performing Cities:**
-
-| City | Sales Contribution |
-| --- | --- |
-| New York City | 9.1% |
-| Los Angeles | 7.4% |
-| Philadelphia | 5.4% |
-
-**Segment Insights:**
-
-* The top-performing cities contribute 21.9% of total sales, indicating a significant opportunity for targeted marketing and sales efforts.
+No significant segment-level findings to report.
 
 **Time Trends**
 
@@ -71,17 +59,17 @@ No time-based trend analysis available.
 
 **Business Risks & Data Limitations**
 
-* The lack of correlations between key variables and Sales may indicate that other factors, not captured in this dataset, are driving sales performance.
-* The absence of time-based trend analysis available limits our understanding of sales patterns over time.
+* The lack of time-based trend analysis available may limit the ability to identify seasonal or periodic patterns in the data.
+* The right-skewed distribution of Volume may indicate that a few extreme values are influencing the overall trend.
 
 **Strategic Recommendations**
 
-* Focus marketing and sales efforts on top-performing cities, such as New York City, Los Angeles, and Philadelphia, to capitalize on existing opportunities.
-* Investigate and incorporate additional variables that may be driving sales performance, such as product categories, customer demographics, or marketing campaigns.
-* Develop a time-based trend analysis to better understand sales patterns and inform strategic decisions.
+* Monitor the market trend and adjust investment strategies accordingly.
+* Consider diversifying portfolios to minimize the impact of extreme trading volumes.
+* Continue to analyze the data to identify potential seasonal or periodic patterns.
 
 **Visual Dashboards & Monitoring Suggestions**
 
-* Develop a dashboard to track sales performance by city, highlighting top-performing cities and opportunities for growth.
-* Create a correlation matrix to monitor relationships between key variables and Sales, enabling data-driven decision-making.
-* Establish a regular review process to assess sales trends and adjust strategies accordingly.
+* Create a dashboard to track the market trend and identify potential changes in the trend.
+* Monitor trading volumes and adjust investment strategies accordingly.
+* Develop a visualization to illustrate the correlation between Year and Adj_Close prices.
