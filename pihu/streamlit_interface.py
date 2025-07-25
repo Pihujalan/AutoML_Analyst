@@ -154,6 +154,9 @@ if st.session_state.confirmed and st.session_state.df is not None:
         st.session_state.cleaning_result = (cleaned_df, [])
         st.session_state.user_confirmed_types = None
     df, mismatches = st.session_state.cleaning_result
+    df, mismatches = st.session_state.cleaning_result
+    if mismatches:
+        st.dataframe(df)
     # If mismatches, show form for user to resolve
     if mismatches:
         st.warning("Some columns have conflicting type guesses. Please choose the correct type for each:")
