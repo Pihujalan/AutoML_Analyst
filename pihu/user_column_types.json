@@ -1,3 +1,9 @@
 {
-  "Sub-Category": "Category"
+  "Date": "Date",
+  "Open": "Numeric",
+  "High": "Numeric",
+  "Low": "Numeric",
+  "Close": "Numeric",
+  "Adj Close": "Numeric",
+  "Volume": "Numeric"
 }

@@ -1,9 +1,9 @@
 {
-  "Date": "datetime",
-  "Price": "Numeric",
+  "Date": "Date",
   "Open": "Numeric",
   "High": "Numeric",
   "Low": "Numeric",
-  "Vol.": "Free Text",
-  "Change %": "Free Text"
+  "Close": "Numeric",
+  "Adj Close": "Numeric",
+  "Volume": "Numeric"
 }

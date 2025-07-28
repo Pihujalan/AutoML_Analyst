@@ -1,12 +1,11 @@
-• 'High' ranges from 40.74 to 349.67, mean: 140.30, std dev: 89.00. The distribution appears approximately symmetric.
-• 'High' vs 'Adj_Close' shows a strong positive correlation (r = 1.00).
-• 'Low' ranges from 39.72 to 342.20, mean: 137.48, std dev: 87.03. The distribution appears approximately symmetric.
-• 'Low' vs 'Adj_Close' shows a strong positive correlation (r = 1.00).
-• 'Open' ranges from 40.34 to 344.62, mean: 138.93, std dev: 88.07. The distribution appears approximately symmetric.
-• 'Open' vs 'Adj_Close' shows a strong positive correlation (r = 1.00).
-• 'Close' ranges from 40.29 to 343.11, mean: 138.97, std dev: 88.06. The distribution appears approximately symmetric.
-• 'Close' vs 'Adj_Close' shows a strong positive correlation (r = 1.00).
-• 'Volume' ranges from 7425600.00 to 169164000.00, mean: 30096868.99, std dev: 13978621.33. The distribution appears right-skewed.
-• 'Volume' vs 'Adj_Close' shows a weak or no clear correlation (r = -0.04).
-• 'year' ranges from 2015.00 to 2022.00, mean: 2018.36, std dev: 2.22. The distribution appears approximately symmetric.
-• 'year' vs 'Adj_Close' shows a strong positive correlation (r = 0.94).
+• Top categories in 'Date' are: 1999-01-04 (0.0%), 2014-12-30 (0.0%), 2015-01-13 (0.0%).
+• 'Open' ranges from 0.30 to 187.20, mean: 33.03, std dev: 48.81. The distribution appears right-skewed.
+• 'Open' vs 'High' shows a strong positive correlation (r = 1.00).
+• 'Low' ranges from 0.28 to 184.84, mean: 32.60, std dev: 48.17. The distribution appears right-skewed.
+• 'Low' vs 'High' shows a strong positive correlation (r = 1.00).
+• 'Close' ranges from 0.30 to 186.57, mean: 33.02, std dev: 48.77. The distribution appears right-skewed.
+• 'Close' vs 'High' shows a strong positive correlation (r = 1.00).
+• 'Adj Close' ranges from 0.30 to 186.57, mean: 33.02, std dev: 48.77. The distribution appears right-skewed.
+• 'Adj Close' vs 'High' shows a strong positive correlation (r = 1.00).
+• 'Volume' ranges from 17626000.00 to 2086584000.00, mean: 133429714.90, std dev: 114791211.39. The distribution appears right-skewed.
+• 'Volume' vs 'High' shows a weak or no clear correlation (r = -0.28).
