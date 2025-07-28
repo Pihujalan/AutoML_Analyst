@@ -1,8 +1,6 @@
 • 'Row ID' ranges from 1.00 to 9800.00, mean: 4900.50, std dev: 2829.16. The distribution appears approximately symmetric.
 • 'Row ID' vs 'Sales' shows a weak or no clear correlation (r = 0.00).
 • Top categories in 'Order ID' are: Ca-2018-100111 (0.1%), Ca-2018-157987 (0.1%), Ca-2017-165330 (0.1%).
-• Top categories in 'Order Date' are: 2017-09-05 (0.4%), 2017-11-10 (0.4%), 2018-12-02 (0.3%).
-• Top categories in 'Ship Date' are: 2018-09-26 (0.3%), 2018-12-06 (0.3%), 2016-12-16 (0.3%).
 • Top categories in 'Ship Mode' are: Standard Class (59.8%), Second Class (19.4%), First Class (15.3%).
 • Top categories in 'Customer ID' are: Wb-21850 (0.4%), Ma-17560 (0.3%), Pp-18955 (0.3%).
 • Top categories in 'Customer Name' are: William Brown (0.4%), Matt Abelman (0.3%), Paul Prost (0.3%).
