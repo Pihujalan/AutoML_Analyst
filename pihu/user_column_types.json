@@ -1,9 +1,14 @@
 {
-  "Date": "Date",
-  "Open": "Numeric",
-  "High": "Numeric",
-  "Low": "Numeric",
-  "Close": "Numeric",
-  "Adj Close": "Numeric",
-  "Volume": "Numeric"
+  "Order Date": "Date",
+  "Ship Date": "Date",
+  "Ship Mode": "Category",
+  "Segment": "Category",
+  "City": "Text",
+  "State": "Text",
+  "Postal Code": "Category",
+  "Region": "Category",
+  "Category": "Text",
+  "Sub-Category": "Text",
+  "Product Name": "Text",
+  "Sales": "Numeric"
 }

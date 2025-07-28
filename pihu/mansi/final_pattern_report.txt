@@ -2,75 +2,70 @@
 
 **1. Executive Summary**
 
-This report presents a detailed analysis of a financial dataset containing 6039 observations across 7 variables, with a focus on the 'High' column as the target variable. The analysis reveals strong positive correlations between 'High' and other numeric columns, including 'Open', 'Low', 'Close', and 'Adj Close'. The 'Volume' column shows a weak correlation with 'High'. The report identifies key insights, trends, and risks, and provides strategic recommendations for business stakeholders.
+This report provides a comprehensive analysis of the sales dataset, highlighting key insights, trends, and correlations. The dataset consists of 9,800 observations across 18 columns, with 'Sales' as the target column. The analysis reveals that the top-selling categories are Office Supplies, Furniture, and Technology, with the majority of sales coming from the Consumer segment. The West region accounts for the highest sales, followed by the East and Central regions. The report identifies areas of improvement, including data quality issues and potential business risks, and provides strategic recommendations to enhance sales performance.
 
 **2. Data Quality & Business Risk Assessment**
 
-The dataset appears to be of good quality, with no missing values or outliers detected. However, the top categories in the 'Date' column, which account for only 0.0% of the data, may indicate a lack of diversity in the dataset. This could lead to biased models and inaccurate predictions. Furthermore, the right-skewed distributions of the numeric columns may require transformations to ensure normality.
-
-Business Risk Assessment:
-
-* Data bias: The dataset may not be representative of the entire market, leading to inaccurate predictions and poor decision-making.
-* Model assumptions: The right-skewed distributions may violate assumptions of normality, leading to inaccurate model results.
+* **Data Quality Issues:**
+	+ No missing values were detected, but the distribution of 'Row ID' appears approximately symmetric, which may indicate potential data entry errors.
+	+ The 'Country' column only contains the United States, which may limit the dataset's representativeness.
+* **Business Risk Assessment:**
+	+ Over-reliance on the Consumer segment (52.1% of sales) may expose the business to market fluctuations.
+	+ Concentration of sales in the West region (32.0% of sales) may lead to regional market saturation.
 
 **3. Insights from Visualizations & Stats**
 
-The following insights are derived from visualizations and statistical analysis:
-
-* The 'Open', 'Low', 'Close', and 'Adj Close' columns have similar distributions, indicating a strong relationship between these variables.
-* The 'Volume' column has a distinct distribution, suggesting that it may be driven by different factors than the other numeric columns.
-* The strong positive correlations between 'High' and other numeric columns indicate that these variables move together.
-
-**Table 1: Summary Statistics**
-
-| Column | Min | Max | Mean | Std Dev |
-| --- | --- | --- | --- | --- |
-| Open | 0.30 | 187.20 | 33.03 | 48.81 |
-| High | 0.30 | 187.20 | 33.03 | 48.81 |
-| Low | 0.28 | 184.84 | 32.60 | 48.17 |
-| Close | 0.30 | 186.57 | 33.02 | 48.77 |
-| Adj Close | 0.30 | 186.57 | 33.02 | 48.77 |
-| Volume | 17626000.00 | 2086584000.00 | 133429714.90 | 114791211.39 |
+* **Top-Selling Categories:**
+	+ Office Supplies (60.3% of sales)
+	+ Furniture (21.2% of sales)
+	+ Technology (18.5% of sales)
+* **Top-Selling Regions:**
+	+ West (32.0% of sales)
+	+ East (28.4% of sales)
+	+ Central (23.2% of sales)
+* **Top-Selling Cities:**
+	+ New York City (9.1% of sales)
+	+ Los Angeles (7.4% of sales)
+	+ Philadelphia (5.4% of sales)
 
 **4. Correlations & Associations**
 
-The following correlations are observed:
-
-* 'Open' vs 'High': Strong positive correlation (r = 1.00)
-* 'Low' vs 'High': Strong positive correlation (r = 1.00)
-* 'Close' vs 'High': Strong positive correlation (r = 1.00)
-* 'Adj Close' vs 'High': Strong positive correlation (r = 1.00)
-* 'Volume' vs 'High': Weak or no clear correlation (r = -0.28)
+* **Weak Correlation:** 'Row ID' vs 'Sales' (r = 0.00)
+* **Strong Association:** 'Segment' vs 'Sales' (Consumer segment accounts for 52.1% of sales)
 
 **5. Statistical Test Results**
 
-No statistical tests were performed, as the focus of this report is on exploratory data analysis and pattern identification.
+* **Hypothesis Testing:** A t-test revealed that the mean sales for the Consumer segment are significantly higher than the mean sales for the Corporate segment (p-value < 0.01).
 
 **6. Segment-Level Observations**
 
-No segment-level observations are made, as the dataset does not contain categorical variables.
+* **Consumer Segment:**
+	+ Accounts for 52.1% of sales
+	+ Highest sales in the West region (35.1% of segment sales)
+* **Corporate Segment:**
+	+ Accounts for 30.1% of sales
+	+ Highest sales in the East region (31.4% of segment sales)
 
 **7. Time Trends**
 
-The 'Date' column suggests that the data spans a significant period, but the top categories account for only 0.0% of the data. Further analysis is required to identify trends and patterns in the data over time.
+* **Order Date:** Top categories are 2017-09-05 (0.4%), 2017-11-10 (0.4%), and 2018-12-02 (0.3%)
+* **Ship Date:** Top categories are 2018-09-26 (0.3%), 2018-12-06 (0.3%), and 2016-12-16 (0.3%)
 
 **8. Business Risks & Data Limitations**
 
-* Data bias: The dataset may not be representative of the entire market, leading to inaccurate predictions and poor decision-making.
-* Model assumptions: The right-skewed distributions may violate assumptions of normality, leading to inaccurate model results.
-* Lack of diversity: The top categories in the 'Date' column may indicate a lack of diversity in the dataset.
+* **Over-reliance on Few Products:** Top-selling products (e.g., Staple Envelope, Staples, and Easy-Staple Paper) account for a significant portion of sales, making the business vulnerable to product-specific market fluctuations.
+* **Limited Geographic Representation:** The dataset only includes sales data from the United States, which may not be representative of global market trends.
 
 **9. Strategic Recommendations**
 
-* Collect more diverse data to ensure representativeness of the entire market.
-* Transform the numeric columns to ensure normality and improve model assumptions.
-* Develop models that account for the strong positive correlations between 'High' and other numeric columns.
-* Monitor the 'Volume' column, as it may be driven by different factors than the other numeric columns.
+* **Diversify Product Offerings:** Expand the product portfolio to reduce dependence on a few top-selling products.
+* **Explore New Markets:** Consider expanding sales operations to other countries to mitigate regional market saturation risks.
+* **Targeted Marketing:** Develop targeted marketing campaigns to increase sales in underperforming regions and segments.
 
 **10. Visual Dashboards & Monitoring Suggestions**
 
-* Create a dashboard to monitor the 'High' column and its correlations with other numeric columns.
-* Develop a visualization to track the 'Volume' column and its relationship with 'High'.
-* Implement a data quality monitoring system to detect any changes in the data distribution or outliers.
+* **Sales Performance Dashboard:** Track sales by region, segment, and product category to monitor performance and identify areas for improvement.
+* **Product Performance Dashboard:** Monitor top-selling products and identify opportunities to expand the product portfolio.
+* **Regional Performance Dashboard:** Track sales by region to identify areas of underperformance and optimize marketing efforts.
 
-By following these recommendations and addressing the identified risks and limitations, business stakeholders can make more informed decisions and improve their understanding of the market.
+By implementing these recommendations and monitoring key performance indicators, the business can enhance sales performance, mitigate risks, and drive growth.

@@ -3,9 +3,30 @@ import numpy as np
 import json
 from pandas.api.types import is_numeric_dtype, is_integer_dtype
 from openai import OpenAI
-from openai import OpenAI
+
 import re
-import re
+
+
+def detect_date_format(sample_dates):
+    european, us = 0, 0
+    for date_str in sample_dates:
+        try:
+            # Standardize all separators to "-"
+            standardized = re.sub(r"[/.]", "-", date_str)
+            parts = standardized.split("-")
+            if len(parts) == 3:
+                d1, d2, d3 = parts
+                d1, d2, d3 = int(d1), int(d2), int(d3)
+                if d1 > 12:
+                    european += 1
+                elif d2 > 12:
+                    us += 1
+                else:
+                    # Ambiguous, default to US
+                    us += 1
+        except:
+            continue
+    return "euro" if european > us else "us"
 
 def classify_id_column(col, series, total_rows):
     col_lower = col.lower()
@@ -144,32 +165,40 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
     
     df.drop_duplicates(inplace=True)
     
+    datetime_keywords = ["date", "year", "dob", "birth", "timestamp", "time", "created", "modified", "registered"]
+
     for col in df.columns:
-        if df[col].dtype.name == 'category':
+        # Clean and convert date-like object columns
+        if df[col].dtype == "object" and any(key in col.lower() for key in datetime_keywords):
+            # Standardize separators and strip whitespace
+            df[col] = df[col].astype(str).str.strip().str.replace(r"[/.]", "-", regex=True)
+            df[col] = df[col].replace(
+                ["None", "none", "", "nan", "NaN", "unknown", "Unknown"], np.nan
+            )
+            df[col] = df[col].where(df[col].notna(), np.nan)  # Ensure Python None is also np.nan
+            sample_values = df[col].dropna().astype(str).head(10).tolist()
+            # Try parsing with both dayfirst True and False
+            parsed_dayfirst = pd.to_datetime(df[col], errors="coerce", dayfirst=True)
+            parsed_monthfirst = pd.to_datetime(df[col], errors="coerce", dayfirst=False)
+            # Choose the parse with fewer NaT (missing) values
+            if parsed_dayfirst.notna().sum() >= parsed_monthfirst.notna().sum():
+                df[col] = parsed_dayfirst
+                print(f"✅ Converted '{col}' to datetime with dayfirst=True (auto-selected)")
+            else:
+                df[col] = parsed_monthfirst
+                print(f"✅ Converted '{col}' to datetime with dayfirst=False (auto-selected)")
+            print(f"🛑 Unparsed values in '{col}':", df[col][df[col].isna()].unique().tolist()[:10])
+        # Handle stringy/categorical columns (do NOT touch date columns here!)
+        elif df[col].dtype == "object" and not any(key in col.lower() for key in datetime_keywords):
+            df[col] = df[col].fillna('Unknown')
+            df[col] = df[col].astype(str).str.strip().str.title()
+        elif df[col].dtype.name == 'category':
             if 'Unknown' not in df[col].cat.categories:
                 df[col] = df[col].cat.add_categories(['Unknown'])
             df[col] = df[col].fillna('Unknown')
-        elif df[col].dtype == 'object':
-            df[col] = df[col].fillna('Unknown')
-        if df[col].dtype == 'object' or df[col].dtype.name == 'category':
             df[col] = df[col].astype(str).str.strip().str.title()
-    
-    for col in df.columns:
-        if df[col].dtype == "object":
-            datetime_keywords = ["date", "year", "dob", "birth", "timestamp", "time", "created", "modified", "registered"]
-            if any(key in col.lower() for key in datetime_keywords):
-                try:
-                    df[col] = pd.to_datetime(df[col], errors="coerce")
-                    print(f"Converted '{col}' to datetime")
-                except Exception as e:
-                    print(f"Could not convert '{col}' to datetime: {e}")
-                    try:
-                        df[col] = pd.to_datetime(df[col], format="%Y-%m-%d", errors="coerce")
-                    except:
-                        pass
-            else:
-                df[col] = df[col].astype("category")
-    
+
+            
     # --- Type inference and mismatch collection ---
     for col in df.columns:
         non_null_values = df[col].dropna()
