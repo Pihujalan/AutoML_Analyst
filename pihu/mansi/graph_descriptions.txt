@@ -1,16 +1,10 @@
-• 'Row ID' ranges from 1.00 to 9800.00, mean: 4900.50, std dev: 2829.16. The distribution appears approximately symmetric.
-• 'Row ID' vs 'Sales' shows a weak or no clear correlation (r = 0.00).
-• Top categories in 'Order ID' are: Ca-2018-100111 (0.1%), Ca-2018-157987 (0.1%), Ca-2017-165330 (0.1%).
-• Top categories in 'Ship Mode' are: Standard Class (59.8%), Second Class (19.4%), First Class (15.3%).
-• Top categories in 'Customer ID' are: Wb-21850 (0.4%), Ma-17560 (0.3%), Pp-18955 (0.3%).
-• Top categories in 'Customer Name' are: William Brown (0.4%), Matt Abelman (0.3%), Paul Prost (0.3%).
-• Top categories in 'Segment' are: Consumer (52.1%), Corporate (30.1%), Home Office (17.8%).
-• Top categories in 'Country' are: United States (100.0%).
-• Top categories in 'City' are: New York City (9.1%), Los Angeles (7.4%), Philadelphia (5.4%).
-• Top categories in 'State' are: California (19.9%), New York (11.2%), Texas (9.9%).
-• Top categories in 'Postal Code' are: 10035.0 (2.6%), 10024.0 (2.3%), 10009.0 (2.2%).
-• Top categories in 'Region' are: West (32.0%), East (28.4%), Central (23.2%).
-• Top categories in 'Product ID' are: Off-Pa-10001970 (0.2%), Tec-Ac-10003832 (0.2%), Fur-Fu-10004270 (0.2%).
-• Top categories in 'Category' are: Office Supplies (60.3%), Furniture (21.2%), Technology (18.5%).
-• Top categories in 'Sub-Category' are: Binders (15.2%), Paper (13.7%), Furnishings (9.5%).
-• Top categories in 'Product Name' are: Staple Envelope (0.5%), Staples (0.5%), Easy-Staple Paper (0.4%).
+• 'Low' ranges from 39.72 to 342.20, mean: 137.48, std dev: 87.03. The distribution appears approximately symmetric.
+• 'Low' vs 'High' shows a strong positive correlation (r = 1.00).
+• 'Open' ranges from 40.34 to 344.62, mean: 138.93, std dev: 88.07. The distribution appears approximately symmetric.
+• 'Open' vs 'High' shows a strong positive correlation (r = 1.00).
+• 'Close' ranges from 40.29 to 343.11, mean: 138.97, std dev: 88.06. The distribution appears approximately symmetric.
+• 'Close' vs 'High' shows a strong positive correlation (r = 1.00).
+• 'Volume' ranges from 7425600.00 to 169164000.00, mean: 30096868.99, std dev: 13978621.33. The distribution appears right-skewed.
+• 'Volume' vs 'High' shows a weak or no clear correlation (r = -0.03).
+• 'Adj Close' ranges from 35.36 to 340.88, mean: 134.95, std dev: 89.14. The distribution appears approximately symmetric.
+• 'Adj Close' vs 'High' shows a strong positive correlation (r = 1.00).

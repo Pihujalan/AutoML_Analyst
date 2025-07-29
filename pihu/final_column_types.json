@@ -1,13 +1,9 @@
 {
-  "Order Date": "Date",
-  "Ship Date": "Date",
-  "Segment": "Category",
-  "City": "Text",
-  "State": "Text",
-  "Postal Code": "Category",
-  "Region": "Category",
-  "Category": "Text",
-  "Sub-Category": "Text",
-  "Product Name": "Text",
-  "Sales": "Numeric"
+  "Date": "Date",
+  "High": "Numeric",
+  "Low": "Numeric",
+  "Open": "Numeric",
+  "Close": "Numeric",
+  "Volume": "Numeric",
+  "Adj Close": "Numeric"
 }
