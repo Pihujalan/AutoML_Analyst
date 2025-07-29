@@ -566,8 +566,6 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
     df.to_csv("cleaned_input.csv", index=False)
     print("✅ Cleaned data saved to 'cleaned_input.csv'")
     
-    return df
-    
     # --- Save cleaned data ---
     os.makedirs("data", exist_ok=True)
     df.to_csv("data/cleaned_input.csv", index=False)
