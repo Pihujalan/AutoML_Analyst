@@ -1,5 +1,5 @@
 {
-
+  "Unnamed: 0": "ID",
   "Row ID": "ID",
   "Order ID": "Free Text",
   "Order Date": "datetime",
@@ -18,5 +18,4 @@
   "Sub-Category": "Category",
   "Product Name": "Free Text",
   "Sales": "Numeric"
-
 }

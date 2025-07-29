@@ -3,9 +3,43 @@ import numpy as np
 import json
 from pandas.api.types import is_numeric_dtype, is_integer_dtype
 from openai import OpenAI
-
-
 from openai import OpenAI
+import re
+import re
+
+def classify_id_column(col, series, total_rows):
+    col_lower = col.lower()
+    id_terms = ["id", "uuid", "ssn", "guid", "key", "account", "registration", "passport", "record"]
+    col_compact = re.sub(r'[\s_]', '', col_lower)
+    if any(term in col_compact for term in id_terms):
+        return True
+    nunique = series.nunique(dropna=True)
+    if (nunique >= 0.985 * total_rows):
+        money_keywords = ["amount", "price", "pay", "total", "revenue", "cost", "charge"]
+        year_keywords = ["date", "dob", "year", "time", "timestamp"]
+        counter_keywords = ["count", "number", "quantity"]
+        if any(term in col_lower for term in money_keywords + year_keywords + counter_keywords):
+            return False
+        if series.dtype in ['int64', 'float64']:
+            if series.diff().abs().mean() <= 2:
+                return False
+        if series.dtype == object and series.str.len().std() < 2 and series.str.len().mean() in (8, 16, 32, 36):
+            return True
+        return True
+    return False
+
+def classify_name_column(series, sample_size=25, threshold=0.8):
+    sample = series.dropna().astype(str).sample(
+        min(sample_size, max(1, series.notnull().sum()))
+    )
+    def check_name(value):
+        words = value.split()
+        if len(words) != 2:
+            return False
+        return all(w.isalpha() and w[0].isupper() for w in words)
+    ratio = np.mean([check_name(val) for val in sample])
+    return ratio >= threshold
+
 
 client = OpenAI(
     api_key="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",
@@ -363,6 +397,31 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
 
 
 
+    
+    
+        # --- DROP ID & NAME columns classified from final_types ---
+    id_name_cols = [col for col, typ in final_types.items() if typ.lower() in ("id", "name")]
+    if id_name_cols:
+        print(f"🗑️ Dropping ID/Name columns: {id_name_cols}")
+        df = df.drop(columns=id_name_cols)
+    else:
+        print("No ID or Name columns found to drop!")
+
+    # --- Force-drop columns with 'id' or 'name' in their name (except product name etc) ---
+    exclude_safe = ("product name", "product_id", "sub-category", "category", "segment")  # extend as needed
+
+    cols_to_force_drop = []
+    for col in df.columns:
+        col_lower = col.lower().replace("_", " ").strip()
+        # Drop if 'id' or 'name' in column, unless it's in exclude_safe
+        if (("id" in col_lower or "name" in col_lower) and
+            not any(safe in col_lower for safe in exclude_safe)):
+            cols_to_force_drop.append(col)
+
+    if cols_to_force_drop:
+        print(f"Force-dropping these ID/name columns: {cols_to_force_drop}")
+        df = df.drop(columns=cols_to_force_drop)
     df.to_csv("cleaned_input.csv", index=False)
     print("✅ Cleaned data saved to 'cleaned_input.csv'")
+    
     return df

@@ -23,17 +23,537 @@ import argparse
 import sys
 import re
 from dateutil.parser import parse
-from pandas.api.types import is_datetime64_any_dtype, is_object_dtype
+from pandas.api.types import is_datetime64_any_dtype, is_object_dtype, is_string_dtype
 import streamlit as st
 import glob
 import requests
+from datetime import datetime
+import threading
+
+
 
 
 # GPT report function using Together.ai
+ANALYSIS_API_KEY = "a81e0b6137ae03b2c1f53be56b1e1a99bfbe474de314a18694de143cc145a378"
+TRAINING_API_KEY = "50f3cb01685c676283ee06f12ca9cfb7d393aa9714ab1bd55a4ce3d9f3c7f8cb"
+FINAL_REPORT_API_KEY = "19a0de6fd95ff0694858fd55981426968d49234b7500533368d09f3239d29504"
+FINAL_REPORT_API_KEY2 = "e63306f711963212a2eb0d121586107cd8391323f95a8133a7c3db5cf98b89a4"
+FINAL_REPORT_API_KEY3 = "c40daf6dc4975a203cb5b1803db7ebfd1ecf4cd75cd4a4b6b2a90c115ec66057"
+
+def generate_epic_final_report_with_together(sections, output_path="epic_final_report.txt"):
+    """
+    🚀 MULTI-API DATA ANALYST SYSTEM: Uses all 3 API keys for comprehensive, reliable reports
+    Each API specializes in different aspects and works together
+    """
+    print(f"🤝 [MULTI-API] Starting comprehensive data analysis using all 3 API keys...")
+    print(f"🤝 [MULTI-API] Output path: {output_path}")
+    
+    # Read all sections
+    data_content = []
+    for i, (title, path) in enumerate(sections):
+        print(f"📖 [MULTI-API] [{i+1}/{len(sections)}] Reading: {path}")
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read()
+            print(f"✅ [MULTI-API] Successfully read {len(content)} characters from {path}")
+            data_content.append(f"\n=== {title} ===\n{content}\n")
+        except Exception as e:
+            print(f"❌ [MULTI-API] Failed to read {path}: {e}")
+            data_content.append(f"\n=== {title} ===\n[Could not read file: {path} | Error: {e}]\n")
+
+    # Split data into manageable chunks for each API
+    all_data = ''.join(data_content)
+    print(f"📊 [MULTI-API] Total data content: {len(all_data)} characters")
+    
+    # Split into 3 chunks for the 3 APIs
+    chunk_size = len(all_data) // 3
+    chunks = [
+        all_data[:chunk_size],
+        all_data[chunk_size:2*chunk_size],
+        all_data[2*chunk_size:]
+    ]
+    
+    print(f"🔧 [MULTI-API] Split data into 3 chunks for parallel processing")
+    
+    # API 1: Technical Analysis (Model Performance, SHAP, Metrics)
+    print(f"\n🔬 [API-1] Technical Specialist analyzing model performance and metrics...")
+    tech_prompt = f"""
+You are a Technical Data Analyst specializing in model performance and statistical analysis.
+
+ANALYZE THIS DATA CHUNK:
+{chunks[0]}
+
+FOCUS ON:
+- Model performance metrics (R², MAE, MSE)
+- SHAP feature importance analysis
+- Statistical test results
+- Data quality assessment
+- Technical insights and patterns
+
+Create a detailed technical analysis section with tables, real numbers, and statistical insights.
+"""
+    
+    # API 2: Business Analysis (Insights, Recommendations, Executive Summary)
+    print(f"\n💼 [API-2] Business Analyst converting technical findings to business insights...")
+    business_prompt = f"""
+You are a Business Analyst specializing in converting technical findings into business insights.
+
+ANALYZE THIS DATA CHUNK:
+{chunks[1]}
+
+FOCUS ON:
+- Business implications of technical findings
+- Executive summary and key insights
+- Actionable recommendations
+- Risk assessment and business impact
+- Strategic insights and opportunities
+
+Create a detailed business analysis section with practical insights and actionable recommendations.
+"""
+    
+    # API 3: Statistical Analysis (Correlations, Tests, Patterns)
+    print(f"\n📈 [API-3] Statistical Analyst examining correlations and statistical tests...")
+    stats_prompt = f"""
+You are a Statistical Analyst specializing in correlation analysis and statistical testing.
+
+ANALYZE THIS DATA CHUNK:
+{chunks[2]}
+
+FOCUS ON:
+- Correlation analysis results
+- Statistical test findings (chi-square, ANOVA, etc.)
+- Pattern analysis and trends
+- Outlier detection results
+- Statistical significance and confidence
+
+Create a detailed statistical analysis section with correlation tables and test results.
+"""
+    
+    # Call all 3 FINAL_REPORT APIs in parallel for comprehensive coverage
+    results = []
+    api_keys = [FINAL_REPORT_API_KEY, FINAL_REPORT_API_KEY2, FINAL_REPORT_API_KEY3]
+    prompts = [tech_prompt, business_prompt, stats_prompt]
+    roles = ["Technical Specialist", "Business Analyst", "Statistical Analyst"]
+    
+    for i, (api_key, prompt, role) in enumerate(zip(api_keys, prompts, roles)):
+        try:
+            print(f"🌐 [API-{i+1}] {role} making API call...")
+            result = call_multi_api(prompt, api_key, role, 2048)
+            results.append(result)
+            print(f"✅ [API-{i+1}] {role} completed successfully")
+        except Exception as e:
+            print(f"❌ [API-{i+1}] {role} failed: {e}")
+            results.append(f"[{role} analysis failed: {e}]")
+    
+    # Combine all results with SAFETY CHECKS
+    combined_analysis = "\n\n".join(results)
+    print(f"\n🔗 [MULTI-API] Combining results from all 3 APIs...")
+    print(f"📊 [MULTI-API] Combined results length: {len(combined_analysis)} characters")
+    
+    # ROBUST FINAL PROMPT WITH HARD CAPS
+    print(f"\n🎯 [FINAL] Creating unified comprehensive report with safety checks...")
+    
+    # SMART APPROACH: Use all 3 APIs for comprehensive report generation
+    print(f"\n🚀 [SMART] Using all 3 APIs for comprehensive report generation...")
+    
+    # Split the combined analysis into 3 specialized sections
+    analysis_parts = [
+        "Model Performance & Technical Analysis",
+        "Business Insights & Strategic Analysis", 
+        "Statistical Analysis & Data Quality"
+    ]
+    
+    # Create specialized prompts for each API to generate detailed sections
+    specialized_prompts = []
+    
+    # API 1: Detailed Technical Analysis (Model Performance, SHAP, Metrics)
+    tech_prompt = f"""
+You are a Technical Data Analyst creating a DETAILED technical analysis section.
+
+ANALYSIS DATA:
+{combined_analysis}
+
+Create a COMPREHENSIVE technical analysis section (500+ lines) that includes:
+
+1. **Detailed Model Performance Analysis**
+   - R², MAE, MSE with detailed interpretation
+   - Training vs test performance comparison
+   - Model validation and reliability assessment
+   - Performance benchmarks and industry standards
+
+2. **Comprehensive SHAP Feature Importance Analysis**
+   - Detailed SHAP values with business interpretation
+   - Feature interaction analysis
+   - Feature engineering recommendations
+   - Model explainability insights
+
+3. **Technical Deep Dive**
+   - Model architecture and methodology
+   - Data preprocessing steps
+   - Feature selection rationale
+   - Model optimization opportunities
+
+4. **Detailed Tables and Visualizations**
+   - Comprehensive performance metrics table
+   - SHAP importance ranking table
+   - Model comparison tables
+   - Technical specifications table
+
+CRITICAL: Generate 500+ lines of detailed technical analysis with tables, numbers, and deep insights.
+"""
+    
+    # API 2: Detailed Business Analysis (Insights, Strategy, Recommendations)
+    business_prompt = f"""
+You are a Business Analyst creating a DETAILED business analysis section.
+
+ANALYSIS DATA:
+{combined_analysis}
+
+Create a COMPREHENSIVE business analysis section (500+ lines) that includes:
+
+1. **Executive Summary & Business Impact**
+   - Key business findings and implications
+   - Revenue and cost impact analysis
+   - Market opportunity assessment
+   - Competitive advantage insights
+
+2. **Strategic Business Insights**
+   - Customer segmentation analysis
+   - Pricing strategy implications
+   - Operational efficiency insights
+   - Growth opportunity identification
+
+3. **Actionable Business Recommendations**
+   - Specific strategic recommendations
+   - Implementation roadmap
+   - Resource allocation suggestions
+   - Performance monitoring framework
+
+4. **Risk Management & Business Continuity**
+   - Business risk assessment
+   - Mitigation strategies
+   - Contingency planning
+   - Compliance considerations
+
+5. **Detailed Business Tables**
+   - Business impact metrics table
+   - ROI analysis table
+   - Risk assessment matrix
+   - Strategic priority table
+
+CRITICAL: Generate 500+ lines of detailed business analysis with practical insights and actionable recommendations.
+"""
+    
+    # API 3: Detailed Statistical Analysis (Correlations, Tests, Patterns)
+    stats_prompt = f"""
+You are a Statistical Analyst creating a DETAILED statistical analysis section.
+
+ANALYSIS DATA:
+{combined_analysis}
+
+Create a COMPREHENSIVE statistical analysis section (500+ lines) that includes:
+
+1. **Comprehensive Statistical Test Results**
+   - Pearson correlation analysis with detailed interpretation
+   - Chi-square test results and significance
+   - ANOVA/T-test findings
+   - Cramér's V analysis for categorical variables
+
+2. **Pattern Analysis & Trend Detection**
+   - Time series analysis (if applicable)
+   - Seasonal patterns and trends
+   - Outlier detection and analysis
+   - Distribution analysis
+
+3. **Data Quality Assessment**
+   - Data completeness analysis
+   - Data consistency checks
+   - Missing value patterns
+   - Data validation results
+
+4. **Advanced Statistical Insights**
+   - Confidence intervals and significance levels
+   - Effect size analysis
+   - Statistical power assessment
+   - Multiple comparison corrections
+
+5. **Detailed Statistical Tables**
+   - Correlation matrix table
+   - Statistical test results table
+   - Data quality metrics table
+   - Pattern analysis summary table
+
+CRITICAL: Generate 500+ lines of detailed statistical analysis with comprehensive test results and data insights.
+"""
+    
+    specialized_prompts = [tech_prompt, business_prompt, stats_prompt]
+    
+    # Call all 3 APIs to generate detailed sections
+    detailed_sections = []
+    api_keys = [FINAL_REPORT_API_KEY, FINAL_REPORT_API_KEY2, FINAL_REPORT_API_KEY3]
+    roles = ["Technical Specialist", "Business Analyst", "Statistical Analyst"]
+    
+    for i, (api_key, prompt, role) in enumerate(zip(api_keys, specialized_prompts, roles)):
+        try:
+            print(f"🌐 [API-{i+1}] {role} generating detailed section...")
+            # Use larger output tokens for detailed sections
+            detailed_section = call_multi_api(prompt, api_key, role, 3000)
+            detailed_sections.append(detailed_section)
+            print(f"✅ [API-{i+1}] {role} completed detailed section ({len(detailed_section)} chars)")
+        except Exception as e:
+            print(f"❌ [API-{i+1}] {role} failed: {e}")
+            detailed_sections.append(f"[{role} detailed section failed: {e}]")
+    
+    # Combine all detailed sections
+    comprehensive_report = "\n\n" + "="*80 + "\n\n".join(detailed_sections)
+    print(f"\n🔗 [SMART] Combined detailed sections: {len(comprehensive_report)} characters")
+    
+    # Final unification with executive summary
+    print(f"\n🎯 [FINAL] Creating executive summary and final structure...")
+    final_prompt = f"""
+You are a Senior Data Analyst creating the final executive summary and report structure.
+
+Your team has generated these detailed sections:
+
+=== TECHNICAL ANALYSIS ===
+{detailed_sections[0] if len(detailed_sections) > 0 else "No technical analysis available"}
+
+=== BUSINESS ANALYSIS ===
+{detailed_sections[1] if len(detailed_sections) > 1 else "No business analysis available"}
+
+=== STATISTICAL ANALYSIS ===
+{detailed_sections[2] if len(detailed_sections) > 2 else "No statistical analysis available"}
+
+Create a comprehensive executive summary (200+ lines) that:
+
+1. **Executive Summary** - High-level business impact and key findings
+2. **Report Structure** - Professional organization and flow
+3. **Key Insights Summary** - Most important findings from all sections
+4. **Strategic Recommendations** - Top-level actionable recommendations
+5. **Risk Assessment Summary** - Key risks and mitigation strategies
+
+CRITICAL: Generate a professional executive summary that ties together all the detailed sections.
+"""
+    
+    try:
+        # Use moderate output tokens for final summary
+        executive_summary = call_multi_api(final_prompt, FINAL_REPORT_API_KEY, "Senior Data Analyst", 2000)
+        
+        # Combine executive summary with detailed sections
+        final_report = f"""
+# COMPREHENSIVE DATA ANALYST REPORT
+Generated by Multi-API Collaborative System
+
+{executive_summary}
+
+{comprehensive_report}
+
+---
+*Report generated using advanced multi-API collaborative analysis system*
+*Total report length: {len(executive_summary) + len(comprehensive_report)} characters*
+"""
+        
+        # Save the final report
+        print(f"💾 [MULTI-API] Saving comprehensive report to: {output_path}")
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(final_report)
+        
+        print(f"🎉 [MULTI-API] SUCCESS! Comprehensive report saved to '{output_path}'")
+        print(f"📊 [MULTI-API] Report length: {len(final_report)} characters")
+        print(f"📊 [MULTI-API] Estimated lines: {final_report.count(chr(10)) + 1}")
+        
+        return final_report
+        
+    except Exception as e:
+        print(f"❌ [MULTI-API] Final report generation failed: {e}")
+        raise
+
+def call_multi_api(prompt, api_key, role_name, max_new_tokens=2048):
+    """API call function for multi-API system with ROBUST safety checks"""
+    url = "https://api.together.xyz/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    # ULTRA-CONSERVATIVE token calculation with multiple safety layers
+    estimated_tokens = len(prompt) // 3.5  # Even more conservative estimate
+    
+    # First safety layer: Truncate if too large
+    if estimated_tokens > 4000:  # Lower threshold
+        print(f"⚠️ [SAFETY] Prompt too large ({estimated_tokens} tokens), truncating...")
+        max_chars = 4000 * 3.5
+        prompt = prompt[:int(max_chars)] + "\n\n[Content truncated for API safety]"
+        estimated_tokens = len(prompt) // 3.5
+    
+    # Second safety layer: Ensure we stay well under limit with HUGE safety margin
+    available_tokens = 8193 - estimated_tokens - 1500  # Increased safety margin
+    max_new_tokens = min(max_new_tokens, available_tokens)
+    
+    # Third safety layer: Never exceed 1000 output tokens for safety
+    max_new_tokens = min(max_new_tokens, 1000)
+    
+    payload = {
+        "model": "meta-llama/Llama-3-70b-chat-hf",
+        "messages": [
+            {"role": "system", "content": f"You are {role_name}, a specialized data analyst."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.3,
+        "max_tokens": max_new_tokens
+    }
+    
+    print(f"🌐 [MULTI-API] {role_name} making API call (input: ~{estimated_tokens}, output: {max_new_tokens})")
+    print(f"🔍 [SAFETY] Total estimated tokens: {estimated_tokens + max_new_tokens} (limit: 8193)")
+    
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=120)
+        
+        if response.status_code != 200:
+            raise Exception(f"{role_name} API returned status code {response.status_code}: {response.text}")
+    
+        response_json = response.json()
+        result = response_json["choices"][0]["message"]["content"]
+        
+        print(f"✅ [MULTI-API] {role_name} generated {len(result)} characters")
+        return result
+        
+    except Exception as e:
+        print(f"❌ [MULTI-API] {role_name} API call failed: {e}")
+        raise
+
+
+
+def call_team_api(prompt, api_key, member_name, max_new_tokens=2048):
+    """Helper function to call Together AI API for team members"""
+    url = "https://api.together.xyz/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    # Calculate optimal token allocation
+    estimated_tokens = len(prompt) // 4  # Rough estimate
+    if estimated_tokens + max_new_tokens > 8193:
+        max_new_tokens = max(512, 8193 - estimated_tokens)
+    
+    payload = {
+        "model": "meta-llama/Llama-3-70b-chat-hf",
+        "messages": [
+            {"role": "system", "content": f"You are {member_name}, a collaborative team member working on a comprehensive analytics report."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.3,
+        "max_tokens": max_new_tokens
+    }
+    
+    print(f"🌐 [TEAM] {member_name} making API call (estimated {estimated_tokens} input tokens, {max_new_tokens} output tokens)...")
+    
+    response = requests.post(url, headers=headers, json=payload, timeout=120)
+    
+    if response.status_code != 200:
+        raise Exception(f"{member_name} API returned status code {response.status_code}: {response.text}")
+    
+    response_json = response.json()
+    result = response_json["choices"][0]["message"]["content"]
+    
+    print(f"✅ [TEAM] {member_name} generated {len(result)} characters")
+    return result
+
+def merge_team_results(chunk_results, chunk_num, total_chunks):
+    """Merge results from all team members for a single chunk"""
+    print(f"🔗 [TEAM] Merging team results for chunk {chunk_num}/{total_chunks}...")
+    
+    # Create a summary of what each team member contributed
+    team_summary = f"""
+=== TEAM COLLABORATION SUMMARY (Chunk {chunk_num}/{total_chunks}) ===
+
+Team Members' Contributions:
+"""
+    
+    for result in chunk_results:
+        team_summary += f"\n--- {result['member']} ({result['role']}) ---\n"
+        team_summary += result['content']
+        team_summary += "\n"
+    
+    return team_summary
+
+
+
+
+
+
+
+def generate_training_report_with_api(summary_path, segment_path=None, shap_path=None, predictions_path=None):
+    # Read summary
+    with open(summary_path, "r", encoding="utf-8") as f:
+        summary_text = f.read()
+    
+    # Read segment analysis JSON as text (pretty print for readability)
+    segment_text = ""
+    if segment_path and os.path.exists(segment_path):
+        with open(segment_path, "r") as f:
+            seg_json = json.load(f)
+            segment_text = json.dumps(seg_json, indent=2)
+    
+    # Read shap importance JSON
+    shap_text = ""
+    if shap_path and os.path.exists(shap_path):
+        with open(shap_path, "r") as f:
+            shap_json = json.load(f)
+            shap_text = json.dumps(shap_json, indent=2)
+    
+    # Read predictions (limited chars)
+    residuals_text = ""
+    if predictions_path and os.path.exists(predictions_path):
+        with open(predictions_path, "r") as f:
+            residuals_text = f.read()
+
+    prompt = f"""
+You are a world-class senior machine learning data analyst.
+Please write a clear, detailed report analyzing the results of a model training.
+Include interpretation of overall metrics, detailed segment-wise analysis, feature importance, SHAP insights, and prediction quality.
+Use bullet points and tables where appropriate.
+
+=== Model Summary ===
+{summary_text}
+
+=== Segment-wise Analysis ===
+{segment_text}
+
+=== SHAP Feature Importance ===
+{shap_text}
+
+=== Prediction Samples ===
+{residuals_text[:3000]}
+
+"""
+
+    url = "https://api.together.xyz/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {TRAINING_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "meta-llama/Llama-3-70b-chat-hf",
+        "messages": [
+            {"role": "system", "content": "You are an expert ML analyst writing detailed reports."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.3,
+        "max_tokens": 1500
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()["choices"][0]["message"]["content"]
+
+
+
 def call_llama3_business_report(prompt):
     url = "https://api.together.xyz/v1/chat/completions"
     headers = {
-        "Authorization": "Bearer a81e0b6137ae03b2c1f53be56b1e1a99bfbe474de314a18694de143cc145a378",
+        "Authorization": f"Bearer {ANALYSIS_API_KEY}",
         "Content-Type": "application/json"
     }
 
@@ -121,13 +641,8 @@ def sanitize_column_name(name):
 
 
 #====================================*Pattern Analysis*==============================================================
-def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_col=None):
-    import pandas as pd
-    import numpy as np
-    import os
-    import json
-    import streamlit as st
-
+def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_col=None, num_bins=50, use_log_scale=False, use_percentile_limit=True):
+   
     # Create 'plots' folder if it doesn't exist
     if not os.path.exists("plots"):
         os.mkdir("plots")
@@ -136,7 +651,6 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
     if not os.path.exists(cleaned_csv_path):
         st.error(f"❌ File not found: {cleaned_csv_path}")
         return
-    
     
     # ✅ Clear old plots before creating new ones
     for old_plot in glob.glob("plots/*.png"):
@@ -147,817 +661,36 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
     # Load dataset
     df = pd.read_csv(cleaned_csv_path)
 
-    # Load and apply final confirmed column types
-    with open("../mansi/final_column_types.json", "r") as f:
-        final_column_types = json.load(f)
-
-    # Replace bad strings globally BEFORE any dtype conversion
-    df = df.replace(["Unknown", "N/A", "", "null", "None"], np.nan)
-
-    # Convert columns based on type from final_column_types.json
-    for col, col_type in final_column_types.items():
-        if col in df.columns:
-            if col_type == "Numeric":
-                df[col] = pd.to_numeric(df[col], errors="coerce")
-            elif col_type == "datetime":
-                df[col] = pd.to_datetime(df[col], errors="coerce")
-                st.write(f"Converted '{col}' to datetime")
-
-    # Drop NaT values only for datetime columns that actually exist
-    datetime_cols = [col for col, typ in final_column_types.items() if typ == "datetime" and col in df.columns]
-    if datetime_cols:
-        df = df.dropna(subset=datetime_cols)
-
-    # Final inference
-    df = df.convert_dtypes()
-
-    # Cast any remaining object columns that are actually dates
-    for col in df.select_dtypes(include=['object']):
+    # CRITICAL FIX: Always load and use the latest user-confirmed types, prioritizing user_column_types.json
+    final_column_types = None
+    try:
+        with open("user_column_types.json", "r") as f:
+            final_column_types = json.load(f)
+            st.info("Loaded user-confirmed column types from user_column_types.json")
+    except FileNotFoundError:
         try:
-            parsed = pd.to_datetime(df[col], errors='raise')
-            df[col] = parsed
-            st.write(f"Auto-converted object column '{col}' to datetime")
-        except Exception:
-            continue
-
-    # ✅ Preview
-    st.subheader("📋 Dataset Preview")
-    st.dataframe(df.head())
-
-    # 📊 Descriptive Statistics Section
-    st.subheader("📊 Descriptive Statistics")
-
-    # Separate numeric and non-numeric columns
-    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    non_numeric_cols = df.select_dtypes(exclude=[np.number]).columns.tolist()
-
-    # Display numeric stats
-    if numeric_cols:
-        numeric_stats = df[numeric_cols].describe().T.fillna("-")
-        st.markdown("#### 📐 Numeric Columns")
-        st.dataframe(numeric_stats, use_container_width=True)
-
-    # Display non-numeric stats only if they exist
-    if non_numeric_cols:
-        try:
-            non_numeric_stats = df[non_numeric_cols].describe(include='all').T.fillna("-")
-            st.markdown("#### 🧾 Categorical / Datetime Columns")
-            st.dataframe(non_numeric_stats, use_container_width=True)
-        except Exception as e:
-            st.warning(f"⚠️ Error while summarizing non-numeric columns: {e}")
-
-    # Infer column types
-    numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
-    categorical_cols = df.select_dtypes(include=['object', 'category', 'bool']).columns.tolist()
-    # Histograms
-    if numeric_cols:
-        st.subheader("📈 Histograms for Numeric Columns")
-        for col in numeric_cols[:3]:  # Show only top 3
-            fig, ax = plt.subplots()
-            sns.histplot(df[col].dropna(), kde=True, ax=ax)
-            ax.set_title(f"Histogram of {col}")
-            st.pyplot(fig)
-
-    # Countplots
-    if categorical_cols:
-        st.subheader("📊 Countplots for Categorical Columns")
-        for col in categorical_cols[:3]:  # Show only top 3
-            fig, ax = plt.subplots()
-            sns.countplot(y=col, data=df, order=df[col].value_counts().index[:10], ax=ax)
-            ax.set_title(f"Countplot of {col}")
-            st.pyplot(fig)
-
-    # Correlation heatmap
-    if len(numeric_cols) > 1:
-        st.subheader("📉 Correlation Heatmap")
-        fig, ax = plt.subplots()
-        sns.heatmap(df[numeric_cols].corr(), annot=True, cmap='coolwarm', ax=ax)
-        st.pyplot(fig)
-    #df = pd.read_csv("mansi/cleaned_input.csv")
-    #df = pd.read_csv(cleaned_csv_path)
-    df.columns = [sanitize_column_name(col) for col in df.columns]
-    target_col = sanitize_column_name(target_col)
-    df = df.drop(columns=[col for col in df.columns if col.strip() in EXCLUDE_COLS], errors="ignore")
-
-
-    print("Running pipeline on columns:", df.columns.tolist())
-    print("Target col as passed from Streamlit:", repr(target_col))
-    if target_col not in df.columns:
-        print("All actual columns as loaded:", [repr(c) for c in df.columns])
-        raise ValueError(f"❌ Target column '{target_col}' not found in the dataset.")
-
-
-
-    # --- Missing Value Pattern Analysis ---
-    print("📊 Running Missing Value Pattern Analysis...")
-
-    missing_summary = pd.DataFrame({
-        "column_name": df.columns,
-        "num_missing": df.isnull().sum().values,
-        "percent_missing": df.isnull().mean().values * 100
-    })
-
-        # ✅ Ensure target output folder exists
-    # ✅ Use current working directory (safe for Streamlit)
-    cwd = os.getcwd()
-    output_dir = os.path.join(cwd, "mansi")
-    os.makedirs(output_dir, exist_ok=True)
-
-    output_path = os.path.join(output_dir, "missing_summary.csv")
-    missing_summary.to_csv(output_path, index=False)
-    print(f"✅ Missing value summary saved to {output_path}")
-    for col, col_type in final_column_types.items():
-        if col_type.lower() == "numeric":
-            if col in df.columns:
-            #HISTOGRAM
-                plt.figure(figsize=(8,5))
-                sns.histplot(df[col])
-                plt.title(f"Histogram for {col}")
-                plt.xlabel(col)
-                plt.ylabel("Frequency")
-                plt.savefig(f"plots/{col}_histogram.png")
-                plt.close()
-
-            #BOXPLOT
-                plt.figure(figsize=(8,5))
-                sns.boxplot(x=df[col])
-                plt.title(f"Boxplot for {col}")
-                plt.xlabel(col)
-                plt.savefig(f"plots/{col}_boxplot.png")
-                plt.close()
-
-    numeric_columns = [sanitize_column_name(col) for col, col_type in final_column_types.items() if col_type.lower() == "numeric"]
-
-    category_columns = [sanitize_column_name(col) for col, col_type in final_column_types.items() if col_type.lower() == "category"]
-
-
-    for num_col in numeric_columns:
-        for cat_col in category_columns:
-            if num_col in df.columns and cat_col in df.columns:
-                plt.figure(figsize=(8,5))
-                sns.boxplot(x=df[cat_col], y=df[num_col])
-                plt.title(f"{num_col} by {cat_col}")
-                plt.xlabel(cat_col)
-                plt.ylabel(num_col)
-                plt.xticks(rotation=45)
-                plt.tight_layout()
-                plt.savefig(f"plots/{num_col}_by_{cat_col}_boxplot.png")
-                plt.close()
-
-    for cat_col in category_columns:
-        if cat_col in df.columns:
-            
-            counts = df[cat_col].value_counts().reset_index()
-            counts.columns = [cat_col, 'count']
-            counts = counts.sort_values(by='count', ascending=False)
-
-            plt.figure(figsize=(8,5))
-            ax = sns.barplot(x=cat_col,y='count',data=counts)
-            for p in ax.patches:
-                    ax.annotate(format(p.get_height(), '.0f'),
-                                (p.get_x() + p.get_width() / 2., p.get_height()),
-                                ha='center', va='center',
-                                xytext=(0, 5),
-                                textcoords='offset points')
-
-            plt.title(f"Barplot for {cat_col}")
-            plt.xlabel(cat_col)
-            plt.ylabel("Count")
-            plt.xticks(rotation=45)
-            plt.tight_layout()
-            plt.savefig(f"plots/barplot_{cat_col}.png")
-            plt.close()
-
-    for col, col_type in final_column_types.items():
-        if col_type.lower() == "category":
-            if col in df.columns:
-                plt.figure(figsize=(8,5))
-                sns.countplot(x=df[col])
-                plt.title(f"Countplot for {col}") 
-                plt.xlabel(col)
-                plt.xticks(rotation=45)
-                plt.tight_layout()
-                plt.savefig(f"plots/countplot_{col}.png")
-                plt.close()
-
-    for cat_col in category_columns:
-        for num_col in numeric_columns:
-            if num_col in df.columns and cat_col in df.columns:
-                plt.figure(figsize = (8,5))
-                sns.violinplot(x=df[cat_col],y=df[num_col])
-                plt.title(f"Violinplot for {num_col} vs {cat_col}")
-                plt.xlabel(cat_col)
-                plt.ylabel(num_col)
-                plt.xticks(rotation=45)
-                plt.tight_layout()
-                plt.savefig(f"plots/violinplot_{num_col}_by_{cat_col}.png")
-                plt.close()
-
-    # SCATTER PLOTS
-    for i in range(len(numeric_columns)):
-        for j in range(i + 1, len(numeric_columns)):
-            col_x = numeric_columns[i]
-            col_y = numeric_columns[j]
-            
-            if col_x in df.columns and col_y in df.columns:
-                plt.figure(figsize=(8, 5))
-                sns.scatterplot(x=df[col_x], y=df[col_y])
-                plt.title(f"Scatterplot: {col_x} vs {col_y}")
-                plt.xlabel(col_x)
-                plt.ylabel(col_y)
-                plt.tight_layout()
-                safe_x = col_x.replace(" ", "_").replace("/", "_")
-                safe_y = col_y.replace(" ", "_").replace("/", "_")
-                plt.savefig(f"plots/scatterplot_{safe_x}_vs_{safe_y}.png")
-                plt.close()
-
-
-    # HEATMAP OF CORRELATIONS
-    # HEATMAP OF CORRELATIONS
-        # HEATMAP OF CORRELATIONS
-        existing_numeric_columns = [col for col in numeric_columns if col in df.columns]
-
-        if len(existing_numeric_columns) > 1:
-            plt.figure(figsize=(10, 8))
-            corr_matrix = df[existing_numeric_columns].corr()
-            sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt=".2f", square=True, linewidths=0.5)
-            plt.title("Correlation Heatmap of Numeric Columns")
-            plt.tight_layout()
-            plt.savefig("plots/correlation_heatmap.png")
-            plt.close()
-        else:
-            print("❌ No matching numeric columns found in dataframe. Skipping correlation heatmap.")
-
-
-        # sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt=".2f", square=True, linewidths=0.5)
-       # plt.title("Correlation Heatmap of Numeric Columns")
-       # plt.tight_layout()
-        #plt.savefig("plots/correlation_heatmap.png")
-       # plt.close()
-    time_columns = [col for col, col_type in final_column_types.items() if col_type.lower() in ["time", "datetime"]]
-
-    for time_col in time_columns:
-        for num_col in numeric_columns:
-            if time_col in df.columns and num_col in df.columns:
-                plt.figure(figsize=(10, 5))
-                df_sorted = df.sort_values(by=time_col)
-                sns.lineplot(x=df_sorted[time_col], y=df_sorted[num_col])
-                plt.title(f"Time Series: {num_col} over {time_col}")
-                plt.xlabel(time_col)
-                plt.ylabel(num_col)
-                plt.tight_layout()
-                plt.savefig(f"plots/timeseries_{num_col}_by_{time_col}.png")
-                plt.close()
-                
-    print("\n📉 Outlier Detection (IQR Method):")
-    outlier_rows = set()
-
-    for col in numeric_columns:
-        if col in df.columns:
-            Q1 = df[col].quantile(0.25)
-            Q3 = df[col].quantile(0.75)
-            IQR = Q3 - Q1
-            lower_bound = Q1 - 1.5 * IQR
-            upper_bound = Q3 + 1.5 * IQR
-
-            outliers = df[(df[col] < lower_bound) | (df[col] > upper_bound)]
-            num_outliers = outliers.shape[0]
-            print(f"Column: {col} | Outliers: {num_outliers}")
-
-            outlier_rows.update(outliers.index.tolist())
-
-    # Save all rows with at least one outlier
-    if outlier_rows:
-        outlier_df = df.loc[list(outlier_rows)]
-        outlier_df.to_csv("outlier_rows.csv", index=False)
-        print(f"✅ Saved {len(outlier_df)} outlier rows to 'outlier_rows.csv'")
-    else:
-        print("✅ No outliers detected.")
-
-    print("\nCardinality analysis for categorical columns:")
-
-    encoding_suggestions = {}
-
-    for col in category_columns:
-        if col in df.columns:
-            unique_count = df[col].nunique()
-            print(f"Column: {col} | Unique values: {unique_count}")
-            if unique_count <= 10:
-                suggestion = "One-Hot Encoding"
-            elif unique_count <= 50:
-                suggestion = "Frequency Encoding"
-            else:
-                suggestion = "Target Encoding"
-            
-            encoding_suggestions[col] = {
-                "unique_values": unique_count,
-                "recommended_encoding": suggestion
-            }
-    print(json.dumps(encoding_suggestions, indent=4))
-    
-
-    
-    # === Pihu's Additional Functions ===
-
-    def classify_columns(df):
-        numeric = df.select_dtypes(include=[np.number]).columns.tolist()
-        categorical = df.select_dtypes(include=['object', 'category']).columns.tolist()
-        return numeric, categorical
-
-    # Pearson correlation (linear numeric)
-
-    def run_statistical_tests(df, column_types, target_col=None):
-        print("\n Statistical Testing Summary")
-        print("="*35)
-
-        categorical_cols = [col for col, t in column_types.items() if t == 'category']
-        numeric_cols = [col for col, t in column_types.items() if t in ['numeric', 'ordinal']]
-
-        for cat_col in categorical_cols:
-            # Chi-squared Test for Categorical vs Categorical
-            for other_cat in categorical_cols:
-                if cat_col != other_cat:
-                    ctab = pd.crosstab(df[cat_col], df[other_cat])
-                    if ctab.shape[0] > 1 and ctab.shape[1] > 1:
-                        chi2, p, _, _ = chi2_contingency(ctab)
-                        result = " Significant" if p < 0.05 else " Not significant"
-                        print(f"\n Chi-Square: {cat_col} vs {other_cat}")
-                        print(f"• p-value: {p:.4f} → {result}")
-
-            # T-test or ANOVA for Categorical vs Numeric
-            for num_col in numeric_cols:
-                groups = [group[num_col].dropna() for name, group in df.groupby(cat_col)]
-                if len(groups) == 2:
-                    stat, p = ttest_ind(groups[0], groups[1], equal_var=False)
-                    result = " Significant" if p < 0.05 else " Not significant"
-                    print(f"\n T-Test: {num_col} by {cat_col}")
-                    print(f"• p-value: {p:.4f} → {result}")
-                elif len(groups) > 2:
-                    stat, p = f_oneway(*groups)
-                    result = " Significant" if p < 0.05 else " Not significant"
-                    print(f"\n ANOVA: {num_col} by {cat_col}")
-                    print(f"• p-value: {p:.4f} → {result}")
-
-    #print output:
-    column_types = {
-        col: 'numeric' if df[col].dtype in ['int64', 'float64'] else 'category'
-        for col in df.columns
-    }
-
-    run_statistical_tests(df, column_types)
-
-    def analyze_time_patterns(df, time_col_name=None, target_cols=[]):
-        """
-        Generalized time-based pattern analysis:
-        - Detects datetime column (or accepts user-specified one)
-        - Extracts year from datetime
-        - Analyzes trend of target columns over years
-        - Handles leave/stay logic if binary target is present
-        """
-
-        #  Try to auto-detect the datetime column if not provided
-        if not time_col_name:
-            for col in df.columns:
-                if pd.api.types.is_datetime64_any_dtype(df[col]) or 'date' in col.lower() or 'year' in col.lower():
-                    time_col_name = col
-                    break
-            if not time_col_name:
-                print("No valid time-based column found.")
-                return
-
-        #  Convert to datetime and extract year
-        df[time_col_name] = pd.to_datetime(df[time_col_name], errors='coerce')
-        df['year'] = df[time_col_name].dt.year
-
-        #  Check if there's enough time variation to proceed
-        if df['year'].nunique() < 5:
-            print(" Not enough unique years for meaningful time-based analysis.")
-            return
-
-        print(f"\n Time-Based Analysis Using '{time_col_name}' Column\n{'-'*60}")
-
-        #  Default numeric targets if not specified
-        if not target_cols:
-            numeric_cols = df.select_dtypes(include=['int64', 'float64', 'Int64']).columns.tolist()
-            target_cols = [col for col in numeric_cols if col != 'year']
-
-        #  Generate year-wise summaries for numeric columns
-        if target_cols:
-            year_summary = df.groupby('year')[target_cols].agg(['mean', 'count']).round(2)
-            print(" Year-wise Summary (Numeric Averages & Counts):")
-            print(year_summary)
-        else:
-            print(" No numeric targets found for summary.")
-
-        #  Auto-detect binary classification column (like 'leaveornot')
-        binary_col = None
-        for col in df.select_dtypes(include='object').columns:
-            if df[col].nunique() == 2:
-                binary_col = col
-                break
-
-        #  If a binary target like 'leaveornot' exists, show trend
-        if binary_col:
-            print(f"\n '{binary_col}' Distribution by Year:")
-            leave_counts = df.groupby(['year', binary_col]).size().unstack(fill_value=0)
-            print(leave_counts)
-    # print output:
-    analyze_time_patterns(df)
-
-    #Outlier Detection
-
-    # Descriptive Statistics Summary
-    def descriptive_stats(df, column_types):
-        summary = []
-
-        for col in df.columns:
-            col_data = df[col]
-            col_type = column_types.get(col, None)
-            result = {
-                'Column': col,
-                'Type': col_type if col_type else str(col_data.dtype),
-                'Count': col_data.count(),
-                'Missing': df[col].isna().sum(),
-                'Unique': col_data.nunique()
-            }
-
-            if col_type == "numeric":
-                result.update({
-                    'Mean': col_data.mean(),
-                    'Median': col_data.median(),
-                    'Mode': col_data.mode().iloc[0] if not col_data.mode().empty else None,
-                    'Std': col_data.std(),
-                    'Min': col_data.min(),
-                    '25%': col_data.quantile(0.25),
-                    '50%': col_data.quantile(0.5),
-                    '75%': col_data.quantile(0.75),
-                    'Max': col_data.max(),
-                    'Skewness': skew(pd.to_numeric(col_data, errors='coerce').dropna()),
-                    'Kurtosis': kurtosis(pd.to_numeric(col_data, errors='coerce').dropna()),
-                })
-
-            elif col_type == "ordinal":
-                result.update({
-                    'Mode': col_data.mode().iloc[0] if not col_data.mode().empty else None,
-                    'Min': col_data.min(),
-                    'Max': col_data.max()
-                })
-
-            elif col_type == "category":
-                mode = col_data.mode().iloc[0] if not col_data.mode().empty else None
-                freq = col_data.value_counts().iloc[0] if not col_data.value_counts().empty else None
-                result.update({
-                    'Top': mode,
-                    'Freq': freq
-                })
-
-            elif col_type == "time":
-                result.update({
-                    'Min Date': col_data.min(),
-                    'Max Date': col_data.max()
-                })
-
-            elif col_type == "id":
-                # We can skip detailed stats for ID-like columns
-                pass
-
-            else:
-                # fallback for unclassified or unknown
-                if pd.api.types.is_numeric_dtype(col_data):
-                    result.update({
-                        'Mean': col_data.mean(),
-                        'Std': col_data.std()
-                    })
-                elif pd.api.types.is_datetime64_any_dtype(col_data):
-                    result.update({
-                        'Min Date': col_data.min(),
-                        'Max Date': col_data.max()
-                    })
-
-            summary.append(result)
-
-        return pd.DataFrame(summary)
-    # make the statistical output readable:
-    def print_descriptive_summary_pretty(summary_df):
-        type_groups = summary_df.groupby('Type')
-
-        for col_type, group in type_groups:
-            print(f"\n{col_type.upper()} COLUMNS:\n" + "-" * 40)
-            for _, row in group.iterrows():
-                print(f"\n {row['Column']}")
-                print(f" Count: {row['Count']}")
-                print(f" Unique: {row['Unique']}")
-                print(f" Missing: {row['Missing']}")
-
-                if col_type == "numeric":
-                    print(f" Mean: {row['Mean']:.2f}")
-                    print(f" Median: {row['Median']}")
-                    print(f" Mode: {row['Mode']}")
-                    # Std Dev - handle if it's numeric only
-                    std_dev = row.get('Std_Dev')
-                    if std_dev is not None:
-                        if isinstance(std_dev, (int, float, np.number)):
-                            print(f" Std Dev: {std_dev:.2f}")
-                        else:
-                            print(f" Std Dev: {std_dev}")
-                    print(f" Min: {row['Min']}")
-                    print(f" 25%: {row['25%']}")
-                    print(f" 50%: {row['50%']}")
-                    print(f" 75%: {row['75%']}")
-                    print(f" Max: {row['Max']}")
-                    print(f" Skewness: {row['Skewness']:.2f}")
-                    print(f" Kurtosis: {row['Kurtosis']:.2f}")
-
-                elif col_type == "ordinal":
-                    print(f" Mode: {row['Mode']}")
-                    print(f" Min: {row['Min']}")
-                    print(f" Max: {row['Max']}")
-
-                elif col_type == "category":
-                    print(f" Most Frequent: {row['Top']}")
-                    print(f" Freq: {row['Freq']}")
-
-                elif col_type == "time":
-                    print(f"Min Date: {row['Min Date']}")
-                    print(f"Max Date: {row['Max Date']}")
-
-                elif col_type == "id":
-                    print(f"Skipped: ID-like column")
-
-                else:
-                    print(f"No detailed analysis for this type.")
-
-    #run the code:
-    summary_df = descriptive_stats(df, column_types)
-    print_descriptive_summary_pretty(summary_df)
-
-
-    #Bivariate / Segment-Wise Analysis
-
-    def compute_pearson(df, numeric_cols):
-        return df[numeric_cols].corr(method='pearson')
-
-    # Spearman correlation (ordinal/skewed)
-
-    def auto_bivariate_all_targets(df, column_types):
-        print(" Full Bivariate Insight Engine: All Columns as Target\n" + "="*60)
-
-        for target_col in df.columns:
-            print(f"\nTarget Column: {target_col} (type: {column_types.get(target_col, 'unknown')})")
-            print("-"*60)
-
-            for compare_col in df.columns:
-                if compare_col == target_col:
-                    continue  # Don't compare a column to itself
-
-                compare_type = column_types.get(compare_col, 'unknown')
-                target_type = column_types.get(target_col, 'unknown')
-
-                # Case 1: Target is numeric, compare is categorical
-                if target_type == 'numeric' and compare_type in ['category', 'ordinal']:
-                    print(f"\n{target_col} (numeric) by {compare_col} (categorical)")
-                    try:
-                        grouped = df.groupby(compare_col)[target_col].agg(['mean', 'median', 'count', 'min', 'max', 'std'])
-                        print(grouped)
-                    except:
-                        print("Could not group")
-
-                # Case 2: Target is categorical, compare is numeric
-                elif target_type in ['category', 'ordinal'] and compare_type == 'numeric':
-                    print(f"\n{compare_col} (numeric) by {target_col} (categorical)")
-                    try:
-                        grouped = df.groupby(target_col)[compare_col].agg(['mean', 'median', 'count', 'min', 'max', 'std'])
-                        print(grouped)
-                    except:
-                        print(" Could not group")
-
-                # Case 3: Numeric vs numeric → correlation
-                elif target_type == 'numeric' and compare_type == 'numeric':
-                    try:
-                        corr = df[[target_col, compare_col]].corr().iloc[0, 1]
-                        print(f"\nPearson Correlation between {target_col} and {compare_col} = {round(corr, 3)}")
-                    except:
-                        print(" Could not compute correlation")
-
-                # Case 4: Categorical vs categorical → cross-tab
-                elif target_type in ['category', 'ordinal'] and compare_type in ['category', 'ordinal']:
-                    print(f"\n Categorical Crosstab: {target_col} vs {compare_col}")
-                    try:
-                        cross = pd.crosstab(df[target_col], df[compare_col])
-                        print(cross)
-                    except:
-                        print(" Could not generate cross-tab")
-
-                # Case 5: Time series target or compare
-                elif target_type == 'time' and compare_type != 'id':
-                    print(f"\n Time Trend: {target_col} over {compare_col}")
-                    try:
-                        trend = df.groupby(df[target_col].dt.year)[compare_col].mean()
-                        print(trend)
-                    except:
-                        print("Could not build time trend")
-
-    #run the bivariate function:
-    auto_bivariate_all_targets(df, column_types)
-
-
-    #Correlation & Association Matrix
-
-    # Automatically classify column types
-
-    def smart_outlier_detector(df, z_thresh=3):
-        numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns
-        total_rows = len(df)
-        report = []
-
-        print(" Smart Outlier Detection Report")
-        print(f" Analyzing columns: {list(numeric_cols)}\n")
-
-        for col in numeric_cols:
-            if df[col].nunique() < 10:
-                print(f" Skipping '{col}' — too few unique values.")
-                continue
-            
-            if df[col].isnull().all():
-                print(f" Skipping '{col}' — all values are NaN.")
-                continue
-
-            col_skew = skew(df[col].dropna())
-            method = "Z-Score" if abs(col_skew) < 0.5 else "IQR"
-
-            if method == "Z-Score":
-                z_scores = np.abs(zscore(df[col].fillna(df[col].mean())))
-                outliers = df[z_scores > z_thresh]
-            else:
-                q1 = df[col].quantile(0.25)
-                q3 = df[col].quantile(0.75)
-                iqr = q3 - q1
-                lower = q1 - 1.5 * iqr
-                upper = q3 + 1.5 * iqr
-                outliers = df[(df[col] < lower) | (df[col] > upper)]
-
-            count = len(outliers)
-            percent = round((count / total_rows) * 100, 2)
-
-            report.append({
-                "column": col,
-                "method": method,
-                "skewness": round(col_skew, 2),
-                "count": count,
-                "percent": percent
-            })
-
-        found = False
-        for r in report:
-            found = found or r['count'] > 0
-            print(f" {r['column']} (Skew: {r['skewness']}) → Method: {r['method']}")
-            print(f"   Outliers: {r['count']} / {total_rows} ({r['percent']}%)\n")
-
-        if not found:
-            print(" No significant outliers detected using smart method.")
-    # print output:
-    smart_outlier_detector(df)
-
-    #Statistical Testing (t test, anova and chi square)
-
-    def descriptive_stats(df, column_types):
-        summary = []
-
-        for col in df.columns:
-            col_data = df[col]
-            col_type = column_types.get(col, None)
-            result = {
-                'Column': col,
-                'Type': col_type if col_type else str(col_data.dtype),
-                'Count': col_data.count(),
-                'Missing': df[col].isna().sum(),
-                'Unique': col_data.nunique()
-            }
-
-            if col_type == "numeric":
-                result.update({
-                    'Mean': col_data.mean(),
-                    'Median': col_data.median(),
-                    'Mode': col_data.mode().iloc[0] if not col_data.mode().empty else None,
-                    'Std': col_data.std(),
-                    'Min': col_data.min(),
-                    '25%': col_data.quantile(0.25),
-                    '50%': col_data.quantile(0.5),
-                    '75%': col_data.quantile(0.75),
-                    'Max': col_data.max(),
-                    'Skewness': skew(col_data.dropna()),
-                    'Kurtosis': kurtosis(col_data.dropna())
-                })
-
-            elif col_type == "ordinal":
-                result.update({
-                    'Mode': col_data.mode().iloc[0] if not col_data.mode().empty else None,
-                    'Min': col_data.min(),
-                    'Max': col_data.max()
-                })
-
-            elif col_type == "category":
-                mode = col_data.mode().iloc[0] if not col_data.mode().empty else None
-                freq = col_data.value_counts().iloc[0] if not col_data.value_counts().empty else None
-                result.update({
-                    'Top': mode,
-                    'Freq': freq
-                })
-
-            elif col_type == "time":
-                result.update({
-                    'Min Date': col_data.min(),
-                    'Max Date': col_data.max()
-                })
-
-            elif col_type == "id":
-                # We can skip detailed stats for ID-like columns
-                pass
-
-            else:
-                # fallback for unclassified or unknown
-                if pd.api.types.is_numeric_dtype(col_data):
-                    result.update({
-                        'Mean': col_data.mean(),
-                        'Std': col_data.std()
-                    })
-                elif pd.api.types.is_datetime64_any_dtype(col_data):
-                    result.update({
-                        'Min Date': col_data.min(),
-                        'Max Date': col_data.max()
-                    })
-
-            summary.append(result)
-
-        return pd.DataFrame(summary)
-    # make the statistical output readable:
-
-    def compute_spearman(df, numeric_cols):
-        return df[numeric_cols].corr(method='spearman')
-
-    # Cramér's V for categorical-categorical
-
-    def compute_cramers_v_matrix(df, categorical_cols):
-        v_matrix = pd.DataFrame(index=categorical_cols, columns=categorical_cols)
-        for col1 in categorical_cols:
-            for col2 in categorical_cols:
+            with open("pihu/final_column_types.json", "r") as f:
+                final_column_types = json.load(f)
+                st.info("Loaded column types from pihu/final_column_types.json")
+        except FileNotFoundError:
+            try:
+                with open("final_column_types.json", "r") as f:
+                    final_column_types = json.load(f)
+                    st.info("Loaded column types from final_column_types.json")
+            except FileNotFoundError:
                 try:
-                    table = pd.crosstab(df[col1], df[col2])
-                    v = cramers_v(table)
-                    v_matrix.loc[col1, col2] = round(v, 3)
-                except:
-                    v_matrix.loc[col1, col2] = np.nan
-        return v_matrix
+                    with open("../mansi/final_column_types.json", "r") as f:
+                        final_column_types = json.load(f)
+                        st.info("Loaded column types from ../mansi/final_column_types.json")
+                except FileNotFoundError:
+                    st.error("No data type configuration found. Please ensure column types are saved.")
+                    return
 
-    # Assume df is your dataframe
-    numeric_cols, categorical_cols = classify_columns(df)
+    if not final_column_types:
+        st.error("No valid column types configuration found.")
+        return
 
-    # Run all three correlation types
-    pearson_corr = compute_pearson(df, numeric_cols)
-    spearman_corr = compute_spearman(df, numeric_cols)
-    cramers_corr = compute_cramers_v_matrix(df, categorical_cols)
-
-    # Output
-    print(" Pearson Correlation (Numeric):")
-    print(pearson_corr.fillna("-"))
-
-    print("\n Spearman Correlation (Ordinal/Skewed):")
-    print(spearman_corr.fillna("-"))
-
-    print("\nCramér's V Correlation (Categorical):")
-    print(cramers_corr.fillna("-"))
-
-
-    #Time-Based Pattern (If time column exists)
-
-    def classify(name,column):
-        name=name.lower()
-        unique= column.nunique()
-        dtype=column.dtype
-        if any (word in name for word in ["year", "date", "time", "dob", "doj", "joined", "created", "timestamp"]) or pd.api.types.is_datetime64_any_dtype(column):
-            return "time"
-        if unique==len(column):
-            return "ID"
-        if dtype in ['int64','float64'] and unique<=15:
-            return 'ordinal'
-        if dtype in ['int64','float64']:
-            return 'numeric'
-        if (dtype == 'object' or dtype.name== 'category') and unique<=15 :
-            return 'category'
-    
-        return 'ID'
-    print(" Column Classification Results:\n")
-    for col in df.columns:
-        guess = classify(col, df[col])
-        dtype = df[col].dtype
-        print(f"{col} ({dtype}): {guess}")
-
-    #to save the classification  in dictionary 
-
-    column_types = final_column_types
-
-    # updating dtypes acc to saved classification in dictionary
-
+    # Define force_convert_exact_dtypes function for this scope
     def force_convert_exact_dtypes(df, column_types):
         """
         General-purpose dtype converter using logical classification.
@@ -1000,203 +733,524 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
                 elif ctype == "id":
                     df_cleaned[col] = df_cleaned[col].astype("object")
 
+                elif ctype == "text":
+                    df_cleaned[col] = df_cleaned[col].astype("object")
+
             except Exception as e:
                 print(f"Failed to convert '{col}' to '{ctype}': {e}")
 
         return df_cleaned
 
-    # Run the function
-
-    df_cleaned = force_convert_exact_dtypes(df, column_types)
-    df = df_cleaned  # Make sure modeling uses cleaned version
-    df.columns = [sanitize_column_name(col) for col in df.columns]
-
-
-    # Final Check
-    print("Final Column Data Types:")
-    print(df_cleaned.dtypes)
-    def generate_segment_analysis(df, target_col, numeric_columns, categorical_columns):
-        """
-        Perform segment-wise summary analysis by splitting the data on categorical variables
-        and showing stats (mean, count) of numeric variables for each.
-        """
-        summary_texts = []
-        for cat_col in categorical_columns:
-            if cat_col == target_col or cat_col not in df.columns:
-                continue
-            try:
-                group_stats = df.groupby(cat_col)[numeric_columns].agg(['mean', 'count']).round(2)
-                summary_texts.append(f"Summary by {cat_col}:\n{group_stats}\n")
-            except Exception as e:
-                continue
-        return '\n'.join(summary_texts)
-
-    # 🧠 Auto-generate graph insights (textual summaries)
-    graph_descriptions = generate_pattern_graph_descriptions(df, target_col)
+    # CRITICAL FIX: Apply user-confirmed types BEFORE any analysis
+    df = force_convert_exact_dtypes(df, final_column_types)
     
-    with open("mansi/graph_descriptions.txt", "w", encoding="utf-8") as f:
-        f.write(graph_descriptions)
+    # Replace bad strings globally AFTER dtype conversion
+    df = df.replace(["Unknown", "N/A", "", "null", "None"], np.nan)
 
-    # ✅ Print basic graph summary
-    print("📊 Pattern Summary from Visual Distributions:")
-    print(graph_descriptions)
-    segment_summary = generate_segment_analysis(df, target_col, numeric_columns, category_columns)
-    with open("mansi/segment_summary.txt", "w", encoding="utf-8") as f:
-        f.write(segment_summary)
+    # ✅ Preview
+    st.subheader("📋 Dataset Preview")
+    st.dataframe(df.head())
 
-    outlier_report = f"{len(outlier_rows)} rows detected as outliers using IQR method."
-    with open("mansi/outlier_report.txt", "w", encoding="utf-8") as f:
-        f.write(outlier_report)
-    # Right before using time_columns for trend analysis:
-    time_columns = [col for col in time_columns if col in df.columns]
-    # Only run the analysis IF there is any valid time column
-    if time_columns:
-        time_trend_summary = analyze_time_patterns(df, time_col_name=time_columns[0], target_cols=numeric_columns)
+    # 📊 Descriptive Statistics Section (only one heading)
+    st.subheader("📊 Descriptive Statistics")
+    
+    # CRITICAL FIX: Build lists strictly by user-confirmed type for columns present in final_column_types
+    numeric_columns = [col for col, typ in final_column_types.items() if typ.lower() == "numeric" and col in df.columns]
+    category_columns = [col for col, typ in final_column_types.items() if typ.lower() == "category" and col in df.columns]
+    text_columns = [col for col, typ in final_column_types.items() if typ.lower() == "text" and col in df.columns]
+    date_columns = [col for col, typ in final_column_types.items() if typ.lower() in ["date", "datetime"] and col in df.columns]
+    id_columns = [col for col, typ in final_column_types.items() if typ.lower() == "id" and col in df.columns]
+
+    # For columns not present in final_column_types, fall back to pandas-inferred types
+    all_user_cols = set(final_column_types.keys())
+    remaining_numeric = [col for col in df.select_dtypes(include=[np.number]).columns if col not in all_user_cols]
+    remaining_category = [col for col in df.select_dtypes(include=['category', 'object']).columns if col not in all_user_cols]
+    remaining_text = [col for col in df.select_dtypes(include=['object', 'string']).columns if col not in all_user_cols]
+    
+    # Additional ID detection for columns not in user types
+    remaining_ids = []
+    for col in df.columns:
+        if col not in all_user_cols:
+            # Check if column name suggests it's an ID
+            if any(id_keyword in col.lower() for id_keyword in ['id', 'row', 'order', 'customer', 'product', 'item']):
+                remaining_ids.append(col)
+    
+    numeric_columns.extend(remaining_numeric)
+    category_columns.extend(remaining_category)
+    text_columns.extend(remaining_text)
+    id_columns.extend(remaining_ids)
+
+    # Remove any column from multiple lists (e.g., if user type is 'Category' but dtype is still numeric, only show in category)
+    used_cols = set()
+    def filter_unique(cols):
+        out = []
+        for c in cols:
+            if c not in used_cols:
+                out.append(c)
+                used_cols.add(c)
+        return out
+    numeric_columns = filter_unique(numeric_columns)
+    category_columns = filter_unique(category_columns)
+    text_columns = filter_unique(text_columns)
+    id_columns = filter_unique(id_columns)
+
+    # CRITICAL FIX: Ensure we only use the correctly filtered columns for analysis
+    # Filter based on user-confirmed types, NOT pandas dtypes
+    numeric_columns = [col for col in numeric_columns if col in final_column_types and final_column_types[col].lower() == "numeric"]
+    category_columns = [col for col in category_columns if col in final_column_types and final_column_types[col].lower() == "category"]
+    text_columns = [col for col in text_columns if col in final_column_types and final_column_types[col].lower() == "text"]
+    date_columns = [col for col in date_columns if col in final_column_types and final_column_types[col].lower() in ["date", "datetime"]]
+    id_columns = [col for col in id_columns if col in final_column_types and final_column_types[col].lower() == "id"]
+
+    # Numeric stats
+    if numeric_columns:
+        numeric_stats = df[numeric_columns].describe().T.fillna("-")
+        st.markdown("#### 📐 Numeric Columns")
+        st.dataframe(numeric_stats, use_container_width=True)
     else:
-        print("No valid time columns found in this file.")
-        time_trend_summary = "No time-based trend analysis available."
+        st.info("No numeric columns found.")
+        
+    # Categorical stats
+    if category_columns:
+        try:
+            cat_stats = df[category_columns].describe(include='all').T.fillna("-")
+            st.markdown("#### 📊 Categorical Columns")
+            st.dataframe(cat_stats, use_container_width=True)
+        except Exception as e:
+            st.warning(f"Could not generate categorical stats: {e}")
+    else:
+        st.info("No categorical columns found.")
+        
+    # Text stats
+    if text_columns:
+        try:
+            text_stats = df[text_columns].describe(include='all').T.fillna("-")
+            st.markdown("#### 📝 Text Columns")
+            st.dataframe(text_stats, use_container_width=True)
+        except Exception as e:
+            st.warning(f"Could not generate text stats: {e}")
+    else:
+        st.info("No text columns found.")
 
-    with open("mansi/time_trend_summary.txt", "w", encoding="utf-8") as f:
-        f.write(time_trend_summary)
+    # Date stats
+    if date_columns:
+        try:
+            date_stats = df[date_columns].describe().T.fillna("-")
+            st.markdown("#### 📅 Date Columns")
+            st.dataframe(date_stats, use_container_width=True)
+        except Exception as e:
+            st.warning(f"Could not generate date stats: {e}")
+    else:
+        st.info("No date columns found.")
+
+    # ID stats
+    if id_columns:
+        try:
+            id_stats = df[id_columns].describe().T.fillna("-")
+            st.markdown("#### 🔍 ID Columns")
+            st.dataframe(id_stats, use_container_width=True)
+        except Exception as e:
+            st.warning(f"Could not generate ID stats: {e}")
+    else:
+        st.info("No ID columns found.")
+
+    # Display column type summary
+    st.markdown("#### 🔍 Column Type Summary")
+    type_summary = []
+    for col in df.columns:
+        if col in final_column_types:
+            type_summary.append(f"**{col}**: {final_column_types[col]} (user-confirmed)")
+        else:
+            type_summary.append(f"**{col}**: {df[col].dtype} (auto-inferred)")
     
+    st.markdown("\n".join(type_summary))
+
+    # ==================== VISUALIZATION SECTION ====================
+    st.markdown("---")
+    st.subheader("📊 Data Visualizations")
     
-    # Convert test summaries to string
-    with open("mansi/chi_square_summary.txt", "r", encoding="utf-8") as f:
-        chi_summary = f.read()
+    # 1. NUMERIC COLUMNS - HISTOGRAMS
+    if numeric_columns:
+        st.markdown("#### 📈 Histograms for Numeric Columns")
+        for col in numeric_columns:
+            try:
+                fig, ax = plt.subplots(figsize=(10, 6))
+                
+                # Apply histogram settings
+                if use_percentile_limit:
+                    # Calculate 99th percentile limit
+                    percentile_99 = df[col].quantile(0.99)
+                    plot_data = df[col][df[col] <= percentile_99]
+                else:
+                    plot_data = df[col]
+                
+                # Create histogram
+                if use_log_scale:
+                    # Use log scale for y-axis
+                    plt.hist(plot_data.dropna(), bins=num_bins, alpha=0.7, edgecolor='black')
+                    plt.yscale('log')
+                else:
+                    plt.hist(plot_data.dropna(), bins=num_bins, alpha=0.7, edgecolor='black')
+                
+                plt.title(f'Distribution of {col}')
+                plt.xlabel(col)
+                plt.ylabel('Frequency')
+                plt.grid(True, alpha=0.3)
+                st.pyplot(fig)
+                plt.close()
+                
+            except Exception as e:
+                st.warning(f"Could not create histogram for {col}: {e}")
+    
+    # 2. CATEGORICAL COLUMNS - BAR CHARTS
+    if category_columns:
+        st.markdown("#### 📊 Bar Charts for Categorical Columns")
+        for col in category_columns:
+            try:
+                fig, ax = plt.subplots(figsize=(12, 6))
+                
+                # Get value counts and limit to top 20 categories for readability
+                value_counts = df[col].value_counts().head(20)
+                
+                plt.bar(range(len(value_counts)), value_counts.values, alpha=0.7, edgecolor='black')
+                plt.title(f'Distribution of {col}')
+                plt.xlabel(col)
+                plt.ylabel('Count')
+                plt.xticks(range(len(value_counts)), value_counts.index, rotation=45, ha='right')
+                plt.grid(True, alpha=0.3)
+                st.pyplot(fig)
+                plt.close()
+                
+            except Exception as e:
+                st.warning(f"Could not create bar chart for {col}: {e}")
+    
+    # 3. CORRELATION HEATMAP (NUMERIC COLUMNS ONLY)
+    if len(numeric_columns) > 1:
+        st.markdown("#### 🔗 Correlation Heatmap (Numeric Columns)")
+        try:
+            # Create correlation matrix for numeric columns only
+            corr_matrix = df[numeric_columns].corr()
+            
+            fig, ax = plt.subplots(figsize=(10, 8))
+            sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', center=0, 
+                       square=True, linewidths=0.5, cbar_kws={"shrink": .8})
+            plt.title('Correlation Matrix of Numeric Variables')
+            plt.tight_layout()
+            st.pyplot(fig)
+            plt.close()
+            
+        except Exception as e:
+            st.warning(f"Could not create correlation heatmap: {e}")
+    else:
+        st.info(f"Correlation heatmap requires at least 2 numeric columns. Found: {len(numeric_columns)}")
+    
+    # 4. BOX PLOTS FOR NUMERIC COLUMNS
+    if numeric_columns:
+        st.markdown("#### 📦 Box Plots for Numeric Columns")
+        for col in numeric_columns:
+            try:
+                fig, ax = plt.subplots(figsize=(10, 6))
+                
+                # Apply percentile limit if enabled
+                if use_percentile_limit:
+                    percentile_99 = df[col].quantile(0.99)
+                    plot_data = df[col][df[col] <= percentile_99]
+                else:
+                    plot_data = df[col]
+                
+                plt.boxplot(plot_data.dropna())
+                plt.title(f'Box Plot of {col}')
+                plt.ylabel(col)
+                plt.grid(True, alpha=0.3)
+                st.pyplot(fig)
+                plt.close()
+                
+            except Exception as e:
+                st.warning(f"Could not create box plot for {col}: {e}")
+    
+    # 5. SCATTER PLOTS (if target column is numeric)
+    if target_col and target_col in numeric_columns and len(numeric_columns) > 1:
+        st.markdown("#### 🎯 Scatter Plots vs Target Variable")
+        other_numeric = [col for col in numeric_columns if col != target_col]
+        
+        for col in other_numeric[:5]:  # Limit to first 5 to avoid too many plots
+            try:
+                fig, ax = plt.subplots(figsize=(10, 6))
+                
+                # Apply percentile limit if enabled
+                if use_percentile_limit:
+                    percentile_99_x = df[col].quantile(0.99)
+                    percentile_99_y = df[target_col].quantile(0.99)
+                    plot_data = df[(df[col] <= percentile_99_x) & (df[target_col] <= percentile_99_y)]
+                else:
+                    plot_data = df
+                
+                plt.scatter(plot_data[col], plot_data[target_col], alpha=0.5)
+                plt.xlabel(col)
+                plt.ylabel(target_col)
+                plt.title(f'{col} vs {target_col}')
+                plt.grid(True, alpha=0.3)
+                
+                # Add trend line
+                z = np.polyfit(plot_data[col].dropna(), plot_data[target_col].dropna(), 1)
+                p = np.poly1d(z)
+                plt.plot(plot_data[col], p(plot_data[col]), "r--", alpha=0.8)
+                
+                st.pyplot(fig)
+                plt.close()
+                
+            except Exception as e:
+                st.warning(f"Could not create scatter plot for {col} vs {target_col}: {e}")
+    
+    # 6. TEXT COLUMNS - WORD FREQUENCY (if applicable)
+    if text_columns:
+        st.markdown("#### 📝 Text Column Analysis")
+        for col in text_columns[:3]:  # Limit to first 3 text columns
+            try:
+                # Show sample of unique values
+                unique_values = df[col].value_counts().head(10)
+                
+                fig, ax = plt.subplots(figsize=(12, 6))
+                plt.bar(range(len(unique_values)), unique_values.values, alpha=0.7, edgecolor='black')
+                plt.title(f'Top 10 Most Common Values in {col}')
+                plt.xlabel('Values')
+                plt.ylabel('Count')
+                plt.xticks(range(len(unique_values)), [str(x)[:20] + '...' if len(str(x)) > 20 else str(x) for x in unique_values.index], 
+                          rotation=45, ha='right')
+                plt.grid(True, alpha=0.3)
+                st.pyplot(fig)
+                plt.close()
+                
+            except Exception as e:
+                st.warning(f"Could not create text analysis for {col}: {e}")
 
-    with open("mansi/anova_summary.txt", "r", encoding="utf-8") as f:
-        anova_summary = f.read()
+    # 7. DATE COLUMNS - TIME SERIES PLOTS
+    if date_columns:
+        st.markdown("#### 📅 Time Series Analysis")
+        for col in date_columns:
+            try:
+                # Create time series plot
+                fig, ax = plt.subplots(figsize=(12, 6))
+                
+                # Group by date and count occurrences
+                date_counts = df[col].value_counts().sort_index()
+                
+                plt.plot(date_counts.index, date_counts.values, marker='o', linewidth=2, markersize=4)
+                plt.title(f'Time Series: {col}')
+                plt.xlabel('Date')
+                plt.ylabel('Count')
+                plt.xticks(rotation=45)
+                plt.grid(True, alpha=0.3)
+                plt.tight_layout()
+                st.pyplot(fig)
+                plt.close()
+                
+            except Exception as e:
+                st.warning(f"Could not create time series plot for {col}: {e}")
+    
+    # 8. OUTLIER DETECTION FOR NUMERIC COLUMNS
+    if numeric_columns:
+        st.markdown("#### 🔍 Outlier Analysis")
+        for col in numeric_columns:
+            try:
+                fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+                
+                # Z-score method
+                z_scores = np.abs(zscore(df[col].dropna()))
+                outliers_z = z_scores > 3
+                
+                # IQR method
+                Q1 = df[col].quantile(0.25)
+                Q3 = df[col].quantile(0.75)
+                IQR = Q3 - Q1
+                outliers_iqr = (df[col] < (Q1 - 1.5 * IQR)) | (df[col] > (Q3 + 1.5 * IQR))
+                
+                # Plot Z-score outliers
+                ax1.scatter(range(len(df[col])), df[col], c=outliers_z, cmap='viridis', alpha=0.6)
+                ax1.set_title(f'Z-Score Outliers in {col}')
+                ax1.set_xlabel('Index')
+                ax1.set_ylabel(col)
+                
+                # Plot IQR outliers
+                ax2.scatter(range(len(df[col])), df[col], c=outliers_iqr, cmap='viridis', alpha=0.6)
+                ax2.set_title(f'IQR Outliers in {col}')
+                ax2.set_xlabel('Index')
+                ax2.set_ylabel(col)
+                
+                plt.tight_layout()
+                st.pyplot(fig)
+                plt.close()
+                
+                # Show outlier statistics
+                outlier_stats = {
+                    'Z-Score Outliers': outliers_z.sum(),
+                    'IQR Outliers': outliers_iqr.sum(),
+                    'Total Records': len(df[col].dropna())
+                }
+                st.write(f"**{col} Outlier Statistics:**")
+                st.write(outlier_stats)
+                
+            except Exception as e:
+                st.warning(f"Could not create outlier analysis for {col}: {e}")
 
-    with open("mansi/pearson_spearman_summary.txt", "r", encoding="utf-8") as f:
-        correlation_summary = f.read()
+    # ==================== PATTERN REPORT GENERATION ====================
+    # Generate fresh pattern descriptions with current dataset's column names
+    if target_col and target_col in df.columns:
+        try:
+            # Generate pattern graph descriptions with current dataset
+            pattern_descriptions = generate_pattern_graph_descriptions(df, target_col)
+            
+            # Save to graph_descriptions.txt
+            with open("mansi/graph_descriptions.txt", "w") as f:
+                f.write(pattern_descriptions)
+            
+            # Generate comprehensive business report
+            # Create a summary of the analysis for the business report
+            analysis_summary = {
+                "dataset_shape": df.shape,
+                "numeric_columns": numeric_columns,
+                "categorical_columns": category_columns,
+                "text_columns": text_columns,
+                "date_columns": date_columns,
+                "id_columns": id_columns,
+                "target_column": target_col,
+                "pattern_descriptions": pattern_descriptions
+            }
+            
+            # Create business report prompt
+            business_prompt = f"""
+            Based on the following dataset analysis, create a comprehensive business report:
+            
+            Dataset Information:
+            - Shape: {df.shape}
+            - Target Column: {target_col}
+            
+            Column Types:
+            - Numeric Columns: {numeric_columns}
+            - Categorical Columns: {category_columns}
+            - Text Columns: {text_columns}
+            - Date Columns: {date_columns}
+            - ID Columns: {id_columns}
+            
+            Pattern Analysis:
+            {pattern_descriptions}
+            
+            Please create a comprehensive business report with:
+            1. Executive Summary
+            2. Data Quality & Business Risk Assessment
+            3. Insights from Visualizations & Stats
+            4. Correlations & Associations
+            5. Statistical Test Results
+            6. Segment-Level Observations
+            7. Time Trends
+            8. Business Risks & Data Limitations
+            9. Strategic Recommendations
+            10. Visual Dashboards & Monitoring Suggestions
+            
+            Use the actual column names from the dataset in all analysis and recommendations.
+            """
+            
+            # Generate business report using the existing function
+            business_report = call_llama3_business_report(business_prompt)
+            
+            # Save to final_pattern_report.txt
+            with open("mansi/final_pattern_report.txt", "w") as f:
+                f.write(business_report)
+            
+            st.success("✅ Pattern analysis reports generated with current dataset column names!")
+            
+        except Exception as e:
+            st.warning(f"Could not generate pattern reports: {e}")
 
-    with open("mansi/cramers_v_summary.txt", "r", encoding="utf-8") as f:
-        cramers_v_summary = f.read()
-
-
-    # ✅ Build GPT Prompt
-    pattern_prompt = f"""
-    You are a SENIOR BUSINESS INTELLIGENCE CONSULTANT with 15+ years in analytics, business strategy, and executive reporting.
-
-    🎯 YOUR TASK: Write a comprehensive, 100+ line executive business report that transforms the pattern analysis of the following dataset into actionable business intelligence for C-level decision-makers.
-
-    MATERIALS YOU MUST INCORPORATE:
-
-    Descriptive statistics and summary tables for all key numeric columns (mean, std, min, max, percentiles, skew, kurtosis)
-
-    Insights from all performed graphs: histograms, boxplots, countplots, scatterplots, violinplots, segment-wise barplots, correlation heatmap, etc.
-
-    USE THESE actual outputs (insert their contents directly in the report at the right spots):
-
-    Graph Summary Observations:
-    {graph_descriptions}
-
-    Segment-Wise Summary:
-    {segment_summary}
-
-    Missing Value Report & Outlier Detection:
-    {outlier_report}
-
-    Time-based Trend Analysis:
-    {time_trend_summary}
-
-    Chi-Square Test:
-    {chi_summary}
-
-    ANOVA/T-Test:
-    {anova_summary}
-
-    Pearson & Spearman Correlation:
-    {correlation_summary}
-
-    Cramér's V (Categorical Assoc.):
-    {cramers_v_summary}
-
-    REPORT STRUCTURE (follow exactly):
-
-    🎯 Executive Summary
-
-    📉 Data Quality & Business Risk
-
-    🔍 Insights from Visualizations & Stats
-
-    Include summary tables for key numeric variables
-
-    Use easy-to-read bullet points for business insights
-
-    🔁 Correlations & Associations
-
-    Insert correlation tables and interpret their business meaning
-
-    🧪 Statistical Test Results
-
-    Use individual result blocks and table summaries
-
-    🧠 Segment-Level Observations
-
-    Insert major segment findings and relevant crosstab tables/bullets
-
-    ⏱️ Time Trends
-
-    ⚠️ Business Risks & Data Limitations
-
-    💡 Strategic Recommendations
-
-    📊 Visual Dashboards & Monitoring Suggestions
-
-    WRITING STYLE:
-
-    Business consultant/executive tone (not technical)
-
-    Use section headers, subheaders, bullet lists, summary tables, and short paragraphs
-
-    Present clear metric values, percentages, and number ranges wherever possible
-
-    Provide strategic takeaways, not just stats
-
-    Highlight actionable business insights and risks at each stage
-
-    For each section, explain what the pattern means for business outcomes or decisions
-    """
-
-    # ✅ Call GPT to generate full pattern analysis report
-    print("\n🧠 Generating GPT-driven Business Report...")
-    llama_report = call_llama3_business_report(pattern_prompt)
-
-    # ✅ Save to file
-    os.makedirs("mansi", exist_ok=True)
-    with open("mansi/final_pattern_report.txt", "w", encoding="utf-8") as f:
-        f.write(llama_report)
-
-    print("✅ GPT report saved to: mansi/final_pattern_report.txt")
-
-
-
-    # Descriptive Statistics Summary
-
-    def cramers_v(confusion_matrix):
-        chi2 = ((confusion_matrix - confusion_matrix.mean())**2 / confusion_matrix.mean()).sum().sum()
-        n = confusion_matrix.sum().sum()
-        phi2 = chi2 / n
-        r, k = confusion_matrix.shape
-        phi2_corr = max(0, phi2 - ((k-1)*(r-1))/(n-1))
-        r_corr = r - ((r-1)**2)/(n-1)
-        k_corr = k - ((k-1)**2)/(n-1)
-        return np.sqrt(phi2_corr / min((k_corr-1), (r_corr-1)))
-
-
-
-    #======================================*end of pattern analysis*=====================================================
-    #encode data
-    warnings.simplefilter(action='ignore', category=FutureWarning)
-    # Ensure encoders folder exists
-    os.makedirs("mansi/encoders", exist_ok=True)
-    return  # End of pattern analysis
+    # Continue with the rest of the analysis using the correctly filtered columns...
 
 
 def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_col=None):
+        # Define force_convert_exact_dtypes function for this scope
+        def force_convert_exact_dtypes(df, column_types):
+            """
+            General-purpose dtype converter using logical classification.
+
+            Parameters:
+            - df: pandas DataFrame (raw input)
+            - column_types: dict with column_name → classification string
+                valid types: 'numeric', 'category', 'ordinal', 'time', 'id'
+
+            Returns:
+            - Cleaned DataFrame with updated pandas dtypes
+            """
+            df_cleaned = df.copy()
+
+            for col, raw_type in column_types.items():
+                ctype = raw_type.strip().lower()
+
+                try:
+                    # Fix string[python] which breaks category/numeric conversion
+                    if pd.api.types.is_string_dtype(df_cleaned[col]):
+                        df_cleaned[col] = df_cleaned[col].astype("object")
+
+                    # Actual conversions
+                    if ctype == "time":
+                        df_cleaned[col] = pd.to_datetime(df_cleaned[col], errors="coerce")
+
+                    elif ctype == "numeric":
+                        df_cleaned[col] = pd.to_numeric(df_cleaned[col], errors="coerce")
+                        if (df_cleaned[col].dropna() % 1 == 0).all():
+                            df_cleaned[col] = df_cleaned[col].astype("Int64")
+                        else:
+                            df_cleaned[col] = df_cleaned[col].astype("float64")
+
+                    elif ctype == "ordinal":
+                        df_cleaned[col] = pd.Categorical(df_cleaned[col], ordered=True)
+
+                    elif ctype == "category":
+                        df_cleaned[col] = df_cleaned[col].astype("category")
+
+                    elif ctype == "id":
+                        df_cleaned[col] = df_cleaned[col].astype("object")
+
+                    elif ctype == "text":
+                        df_cleaned[col] = df_cleaned[col].astype("object")
+
+                except Exception as e:
+                    print(f"Failed to convert '{col}' to '{ctype}': {e}")
+
+            return df_cleaned
+
         df = pd.read_csv(cleaned_csv_path)
         print("Original shape:", df.shape)
+
+        # CRITICAL FIX: Always load and use the latest user-confirmed types, prioritizing user_column_types.json
+        final_column_types = None
+        try:
+            with open("user_column_types.json", "r") as f:
+                final_column_types = json.load(f)
+                print("Loaded user-confirmed column types from user_column_types.json")
+        except FileNotFoundError:
+            try:
+                with open("pihu/final_column_types.json", "r") as f:
+                    final_column_types = json.load(f)
+                    print("Loaded column types from pihu/final_column_types.json")
+            except FileNotFoundError:
+                try:
+                    with open("final_column_types.json", "r") as f:
+                        final_column_types = json.load(f)
+                        print("Loaded column types from final_column_types.json")
+                except FileNotFoundError:
+                    try:
+                        with open("../mansi/final_column_types.json", "r") as f:
+                            final_column_types = json.load(f)
+                            print("Loaded column types from ../mansi/final_column_types.json")
+                    except FileNotFoundError:
+                        print("No data type configuration found. Please ensure column types are saved.")
+                        return
+
+        if not final_column_types:
+            print("No valid column types configuration found.")
+            return
+
+        # CRITICAL FIX: Apply user-confirmed types BEFORE any model training
+        df = force_convert_exact_dtypes(df, final_column_types)
 
         # Target column input (only used for Target Encoding, not applied here)
         if target_col not in df.columns:
@@ -1255,11 +1309,8 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
             print(f"❌ Target column '{target_col}' not found in the dataset. Exiting.")
             exit()
 
-        
-
-        with open("../mansi/final_column_types.json", "r") as f:
-            final_column_types = json.load(f)   # adjust path if needed
-
+        # CRITICAL FIX: Use the same final_column_types that was loaded earlier
+        # Don't reload from file again, use the one already loaded and applied
         cols_to_exclude = [col for col, typ in final_column_types.items() if typ.lower() in ["id", "datetime", "time"]]
     
 
@@ -1331,6 +1382,14 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
                     df[f"{col}_day"] = df[col].dt.day
                     df[f"{col}_dow"] = df[col].dt.dayofweek
                     df.drop(columns=[col], inplace=True)
+        def save_residuals_report(y_true, y_pred, filename="residuals.csv"):
+            residuals = y_true - y_pred
+            residual_df = pd.DataFrame({
+                "Actual": y_true,
+                "Predicted": y_pred,
+                "Residual": residuals
+            })
+            residual_df.to_csv(filename, index=False)
 
 
         #--------------------------------GBM-----------------------------------------------------
@@ -1433,10 +1492,13 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
 
                 print("\n✅ Fallback model trained and selected.")
                 print(f"FLAML Performance:\nMAE: {mae_fallback:.2f} | MSE: {mse_fallback:.2f} | R²: {r2_fallback:.2f}")
+                save_residuals_report(y_test, y_pred_fallback)
+
             else:
                 final_model = best_model
                 used_model_type = "gbm"
                 print("✅ GBM model performed well. No fallback needed.")
+                save_residuals_report(y_test, y_pred)
 
             # ------------------ Save Final Model ------------------
             joblib.dump(final_model, "final_model.pkl")
@@ -1596,6 +1658,7 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
             print(f"   - R² Score:  {round(test_r2, 4)}")
             print(f"   - MAE:       {round(test_mae, 4)}")
             print(f"   - RMSE:      {round(test_rmse, 4)}")
+            save_residuals_report(y_test, test_preds)
 
             
             gap = round(r2 - test_r2, 4)
@@ -1826,12 +1889,35 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
             print("\n✅ Fallback model trained and selected.")
         else:
             print(f"\n✅ Selected model ({used_model_type}) performed well. No fallback needed.")
+            # Set final_model based on the selected model type
+            if used_model_type == "gbm" and 'best_model' in locals():
+                final_model = best_model
+                print("✅ Set final_model to best_model (GBM)")
+            elif used_model_type == "random_forest" and 'rf_model' in locals():
+                final_model = rf_model
+                print("✅ Set final_model to rf_model (Random Forest)")
+            else:
+                print(f"⚠️ Could not set final_model for {used_model_type}")
+                print(f"Available variables: {[k for k in locals().keys() if 'model' in k.lower()]}")
 
         # ================= Final Saving & Summary =======================
         print("\n💾 Saving final model and summary...")
 
-        # Save final model
-        joblib.dump(final_model, "final_model.pkl")
+        # Ensure final_model is properly defined (should already be set above)
+        if 'final_model' not in locals() or final_model is None:
+            print("❌ final_model variable not found! This should not happen.")
+            print(f"Available variables: {[k for k in locals().keys() if 'model' in k.lower() or 'automl' in k.lower()]}")
+            return
+
+        # Save final model - ensure it's always saved
+        try:
+            joblib.dump(final_model, "final_model.pkl")
+            print(f"✅ Final model ({used_model_type}) saved successfully to final_model.pkl")
+            print(f"✅ Model type: {type(final_model).__name__}")
+        except Exception as e:
+            print(f"❌ Error saving final model: {str(e)}")
+            print(f"❌ final_model type: {type(final_model).__name__}")
+            print(f"❌ final_model attributes: {dir(final_model)[:10]}...")
 
         # Load SHAP top 5 if it exists
         shap_top5 = {}
@@ -1947,6 +2033,36 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
                     print("✅ Residual and Actual-vs-Predicted plots saved.")
                 except Exception as e:
                     print(f"⚠️ Failed to generate scatter/residual plots: {e}")
+                    
+                    
+            # After building 'result_df' for each segment inside the loop, accumulate results:
+
+            all_segment_results = {}
+
+            for col in segment_columns:
+                if col not in df_full.columns:
+                    continue
+
+                results = []
+                for val, group in df_full.groupby(col):
+                    if len(group) < 3:
+                        continue
+                    results.append({
+                        col: val,
+                        "Row_Count": len(group),
+                        "MAE": mean_absolute_error(group["target"], group[f"{model_name}_pred"]),
+                        "MSE": mean_squared_error(group["target"], group[f"{model_name}_pred"]),
+                        "R2_Score": r2_score(group["target"], group[f"{model_name}_pred"])
+                    })
+
+                result_df = pd.DataFrame(results)
+                all_segment_results[col] = results
+
+            # At the end of run_full_analysis, save all_segment_results to a json file:
+            with open(f"segment_analysis_{model_name}.json", "w") as f:
+                json.dump(all_segment_results, f, indent=4)
+            print(f"\n📄 Segment-wise analysis saved to 'segment_analysis_{model_name}.json'.")
+
 
         #=========================end of segment analysis====================================================
                 # ------------------ Feature Importance ------------------
@@ -2003,28 +2119,22 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
                 plt.close()
                 print(f"\n💾 SHAP summary plot saved to plots/shap_summary_{model_name}.png")
 
-                # Ask user for how they want SHAP displayed
-                print("\n📌 How do you want SHAP insights displayed?")
-                print("   1. Text Summary")
-                print("   2. Tabular Summary")
-                print("   3. Both")
-                choice = input("Enter your choice (1/2/3): ").strip()
-
+                # Always show both text and tabular SHAP insights
                 mean_abs_shap = np.abs(shap_values).mean(axis=0)
                 shap_df = pd.DataFrame({
                     "Feature": X_sampled.columns,
                     "Mean |SHAP|": mean_abs_shap
                 }).sort_values(by="Mean |SHAP|", ascending=False).reset_index(drop=True)
 
-                if choice in ["1", "3"]:
-                    print("\n🧠 Top 5 Important Features (Text Summary):")
-                    for i, row in shap_df.head(5).iterrows():
-                        print(f"   {i+1}. {row['Feature']} — avg impact: {round(row['Mean |SHAP|'], 4)}")
-                    print(f"\n🗣️ Key Insight: '{shap_df.iloc[0]['Feature']}' had the most influence.")
+                # Always show text summary
+                print("\n🧠 Top 5 Important Features (Text Summary):")
+                for i, row in shap_df.head(5).iterrows():
+                    print(f"   {i+1}. {row['Feature']} — avg impact: {round(row['Mean |SHAP|'], 4)}")
+                print(f"\n🗣️ Key Insight: '{shap_df.iloc[0]['Feature']}' had the most influence.")
 
-                if choice in ["2", "3"]:
-                    print("\n📊 Top 5 Features (Tabular):")
-                    print(tabulate(shap_df.head(5), headers='keys', tablefmt='fancy_grid'))
+                # Always show tabular summary
+                print("\n📊 Top 5 Features (Tabular):")
+                print(tabulate(shap_df.head(5), headers='keys', tablefmt='fancy_grid'))
 
                 # Save to JSON
                 top_5_shap = shap_df.head(5).set_index("Feature")["Mean |SHAP|"].to_dict()
@@ -2150,102 +2260,83 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
                 
             
         run_full_analysis(final_model, X_train, y_train, X_test, y_test, model_name=used_model_type)
+        
+        # Backup: Ensure final_model.pkl exists after SHAP analysis
+        if not os.path.exists("final_model.pkl"):
+            print("⚠️ final_model.pkl not found after SHAP analysis, creating backup...")
+            try:
+                joblib.dump(final_model, "final_model.pkl")
+                print("✅ Created final_model.pkl from final_model variable (backup)")
+            except Exception as e:
+                print(f"❌ Backup creation failed: {str(e)}")
+        else:
+            print("✅ final_model.pkl already exists")
 
+        print("\n🤖 Generating automatic model training analysis report using Together AI...")
+        print("🔍 Debug: About to enter try block...")
+
+        try:
+            print("🔍 Debug: About to call generate_training_report_with_api...")
+            report_text = generate_training_report_with_api(
+                summary_path="final_model_summary.json",
+                segment_path=f"segment_analysis_{used_model_type}.json",
+                shap_path=f"{used_model_type}_shap_importance.json",
+                predictions_path="residuals.csv"  # Always use this file
+            )
+            print(f"🔍 Debug: generate_training_report_with_api returned: {type(report_text)}")
+            with open("auto_training_report.txt", "w", encoding="utf-8") as f:
+                f.write(report_text)
+            print("\n✅ Auto analysis report saved to 'auto_training_report.txt'.")
+            print("🔍 Debug: Auto training report completed successfully")
+            print("🔍 Debug: About to start epic final report generation...")
+            print("🔍 Debug: This line should appear")
+            
+            # Global sections definition
+            sections = [
+                ("Model Summary", "final_model_summary.json"),
+                ("Segment-wise Analysis", f"segment_analysis_{used_model_type}.json"),
+                ("SHAP Feature Importance", f"{used_model_type}_shap_importance.json"),
+                ("Sample Predictions", "residuals.csv"),
+                ("Auto Training Report", "auto_training_report.txt"),
+                ("Pattern Analysis", "mansi/final_pattern_report.txt"),
+                ("Chi-Square Test Summary", "mansi/chi_square_summary.txt"),
+                ("ANOVA Summary", "mansi/anova_summary.txt"),
+                ("Pearson/Spearman Correlation", "mansi/pearson_spearman_summary.txt"),
+                ("Cramér's V Summary", "mansi/cramers_v_summary.txt"),
+                ("Outlier Report", "mansi/outlier_report.txt"),
+                ("Time Trend Report", "mansi/time_trend_summary.txt"),
+                ("Graph Summaries", "mansi/graph_descriptions.txt"),
+            ]
+
+            print("\n📊 Generating comprehensive final analysis report for business users...")
+            generate_epic_final_report_with_together(sections, output_path="epic_final_report.txt")
+            print("\n✅ Epic final analyst report is ready: 'epic_final_report.txt'")
+            
+        except Exception as error:
+            print("❌ API call failed:", error)
+            print("🔍 Debug: Auto training report failed")
+           
         # =========================
-        # 🧠 INTERACTIVE PREDICTION MODE
+        # 🧠 PREDICTION MODE REMOVED - NOW HANDLED IN STREAMLIT INTERFACE
         # =========================
-        if __name__ == "__main__":
-            print("\n🧪 Do you want to make predictions using your trained model?")
-            choice = input("Type 'yes' to continue, or anything else to skip: ").strip().lower()
+        print("\n✅ Model training and analysis complete!")
+        print("📊 Reports generated and saved successfully.")
+        print("🎯 Predictions are now available on Streamlit!")
+        
+        # Prediction interface will be shown on Streamlit automatically
+        # No need to call run_terminal_predictions() here
 
-            if choice == "yes":
-                print("\n📌 Choose input mode:")
-                print("1. Upload CSV file for batch prediction")
-                print("2. Manually enter values for a single prediction")
-                mode = input("Enter 1 or 2: ").strip()
 
-                # Load column types and final model
-                with open("../mansi/final_column_types.json", "r") as f:
-                    column_types = json.load(f)
 
-                with open("mansi/target_config.json", "r") as f:
-                    target_col = json.load(f)["target_column"]
+# ==================== MAIN BLOCK FOR DIRECT PREDICTION CALLING ====================
+if __name__ == "__main__":
+    import sys
+    
+    if len(sys.argv) > 1 and sys.argv[1] == "predict":
+        print("🎯 Starting prediction mode...")
+        run_terminal_predictions()
+    else:
+        print("📋 Usage:")
+        print("   python ml/fullmodel.py predict  # Run predictions only")
+        print("   # Or import and use functions in your code")
 
-                model = joblib.load("final_model.pkl")
-
-                if mode == "1":
-                    file_path = input("\n📂 Enter the full path to your CSV file: ").strip()
-
-                    if not os.path.exists(file_path):
-                        print(f"❌ File not found: {file_path}")
-                    else:
-                        df_input = pd.read_csv(file_path)
-                        df_input = df_input.drop(columns=[target_col], errors="ignore")
-                        preds = model.predict(df_input)
-                        df_input["Predicted"] = preds
-                        df_input.to_csv("predicted_rf.csv", index=False)
-                        print("\n✅ Predictions saved to: predicted_rf.csv")
-
-                elif mode == "2":
-                    print("\n🧾 Manual Input Mode:")
-
-                    input_data = {}
-                    encoders_path = "mansi/encoders"
-                    encoders = {}
-
-                    # Preload all encoders
-                    for col, dtype in column_types.items():
-                        if col == target_col:
-                            continue
-                        if dtype == "category":
-                            encoder_file = os.path.join(encoders_path, f"{col}_encoder.pkl")
-                            if os.path.exists(encoder_file):
-                                encoders[col] = joblib.load(encoder_file)
-                            else:
-                                encoders[col] = None  # Still store as None for fallback
-
-                    # Now loop through columns and ask input
-                    for col, dtype in column_types.items():
-                        if col == target_col:
-                            continue
-
-                        print(f"\n👉 {col} (type: {dtype})")
-
-                        if dtype == "category":
-                            le = encoders.get(col)
-                            if le:
-                                valid_classes = list(le.classes_)
-                                print(f"   🔹 Valid options: {valid_classes}")
-                            else:
-                                valid_classes = []
-                                print("   ⚠️ No encoder found — skipping category validation.")
-
-                        while True:
-                            value = input("   Your input: ").strip()
-                            try:
-                                if dtype == "numeric":
-                                    input_data[col] = float(value)
-                                elif dtype == "ordinal":
-                                    input_data[col] = int(value)
-                                elif dtype == "category":
-                                    le = encoders.get(col)
-                                    if le is None:
-                                        input_data[col] = value
-                                        break
-                                    if value.lower() not in le.classes_:
-                                        print(f"❌ Invalid input. Must be one of: {list(le.classes_)}")
-                                        continue
-                                    input_data[col] = le.transform([value.lower()])[0]
-                                elif dtype == "time":
-                                    input_data[col] = pd.to_datetime(value)
-                                elif dtype == "id":
-                                    input_data[col] = str(value)
-                                else:
-                                    input_data[col] = value
-                                break
-                            except Exception as e:
-                                print(f"❌ Error: {e}. Try again.")
-
-                    df_manual = pd.DataFrame([input_data])
-                    pred = model.predict(df_manual)[0]
-                    print(f"\n🎯 Predicted Value: {round(pred, 2)}")
