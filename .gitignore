@@ -7,3 +7,6 @@ pihu/best_rf_model.pkl
 # CSV inputs
 *.csv
 
+__pycache__/
+*.pyc
+.DS_Store

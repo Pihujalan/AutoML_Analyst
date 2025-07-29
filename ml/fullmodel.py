@@ -714,7 +714,7 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
                     df_cleaned[col] = df_cleaned[col].astype("object")
 
                 # Actual conversions
-                if ctype == "time":
+                if ctype == "time" or ctype == "date" or ctype == "datetime":
                     df_cleaned[col] = pd.to_datetime(df_cleaned[col], errors="coerce")
 
                 elif ctype == "numeric":
@@ -743,6 +743,16 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
 
     # CRITICAL FIX: Apply user-confirmed types BEFORE any analysis
     df = force_convert_exact_dtypes(df, final_column_types)
+    
+    # CRITICAL FIX: Ensure all date columns are properly converted to datetime
+    for col in df.columns:
+        if col in final_column_types and final_column_types[col].lower() in ["date", "datetime"]:
+            if df[col].dtype == 'object' or df[col].dtype == 'string':
+                df[col] = pd.to_datetime(df[col], errors='coerce')
+        # Also convert columns with date-like names that might not be in user types
+        elif any(date_keyword in col.lower() for date_keyword in ['date', 'time', 'year', 'month', 'day']):
+            if df[col].dtype == 'object' or df[col].dtype == 'string':
+                df[col] = pd.to_datetime(df[col], errors='coerce')
     
     # Replace bad strings globally AFTER dtype conversion
     df = df.replace(["Unknown", "N/A", "", "null", "None"], np.nan)
@@ -802,6 +812,20 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
     date_columns = [col for col in date_columns if col in final_column_types and final_column_types[col].lower() in ["date", "datetime"]]
     id_columns = [col for col in id_columns if col in final_column_types and final_column_types[col].lower() == "id"]
 
+    # Additional date column detection for columns not in user types
+    auto_date_columns = []
+    for col in df.columns:
+        if col not in all_user_cols:
+            # Check if column name suggests it's a date
+            if any(date_keyword in col.lower() for date_keyword in ['date', 'time', 'year', 'month', 'day']):
+                auto_date_columns.append(col)
+            # Also check if pandas thinks it's datetime
+            elif pd.api.types.is_datetime64_any_dtype(df[col]):
+                auto_date_columns.append(col)
+    
+    date_columns.extend(auto_date_columns)
+    date_columns = filter_unique(date_columns)
+
     # Numeric stats
     if numeric_columns:
         numeric_stats = df[numeric_columns].describe().T.fillna("-")
@@ -838,6 +862,7 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
             date_stats = df[date_columns].describe().T.fillna("-")
             st.markdown("#### 📅 Date Columns")
             st.dataframe(date_stats, use_container_width=True)
+            
         except Exception as e:
             st.warning(f"Could not generate date stats: {e}")
     else:
@@ -1025,28 +1050,88 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
                 st.warning(f"Could not create text analysis for {col}: {e}")
 
     # 7. DATE COLUMNS - TIME SERIES PLOTS
-    if date_columns:
+    if date_columns and numeric_columns:
         st.markdown("#### 📅 Time Series Analysis")
+        st.info(f"Generating time series plots for {len(numeric_columns)} numeric columns vs {len(date_columns)} date column(s)")
+        for date_col in date_columns:
+            try:
+                # Create time series plots for each numeric column vs the date column
+                for num_col in numeric_columns:  # Show all numeric columns
+                    try:
+                        # Create time series plot
+                        fig, ax = plt.subplots(figsize=(12, 6))
+                        
+                        # Sort by date and plot numeric values over time
+                        plot_data = df[[date_col, num_col]].dropna().sort_values(date_col)
+                        
+                        if len(plot_data) > 0:
+                            plt.plot(plot_data[date_col], plot_data[num_col], marker='o', linewidth=2, markersize=3, alpha=0.7)
+                            plt.title(f'Time Series: {num_col} over {date_col}')
+                            plt.xlabel('Date')
+                            plt.ylabel(num_col)
+                            
+                            # Improve date formatting and tick management
+                            if len(plot_data) > 20:
+                                # For many dates, show fewer ticks
+                                step = max(1, len(plot_data) // 10)
+                                plt.xticks(plot_data[date_col].iloc[::step], 
+                                          [d.strftime('%Y-%m-%d') for d in plot_data[date_col].iloc[::step]], 
+                                          rotation=45, ha='right')
+                            else:
+                                # For fewer dates, show all with better formatting
+                                plt.xticks(plot_data[date_col], 
+                                          [d.strftime('%Y-%m-%d') for d in plot_data[date_col]], 
+                                          rotation=45, ha='right')
+                            
+                            plt.grid(True, alpha=0.3)
+                            plt.tight_layout()
+                            st.pyplot(fig)
+                            plt.close()
+                        else:
+                            st.warning(f"No valid data for {num_col} vs {date_col}")
+                            
+                    except Exception as e:
+                        st.warning(f"Could not create time series plot for {num_col} vs {date_col}: {e}")
+                        
+            except Exception as e:
+                st.warning(f"Could not process date column {date_col}: {e}")
+    elif date_columns:
+        st.markdown("#### 📅 Date Distribution Analysis")
         for col in date_columns:
             try:
-                # Create time series plot
+                # Create date distribution plot (when no numeric columns available)
                 fig, ax = plt.subplots(figsize=(12, 6))
                 
                 # Group by date and count occurrences
                 date_counts = df[col].value_counts().sort_index()
                 
                 plt.plot(date_counts.index, date_counts.values, marker='o', linewidth=2, markersize=4)
-                plt.title(f'Time Series: {col}')
+                plt.title(f'Date Distribution: {col}')
                 plt.xlabel('Date')
-                plt.ylabel('Count')
-                plt.xticks(rotation=45)
+                plt.ylabel('Frequency')
+                
+                # Improve date formatting and tick management
+                if len(date_counts) > 20:
+                    # For many dates, show fewer ticks
+                    step = max(1, len(date_counts) // 10)
+                    plt.xticks(date_counts.index[::step], 
+                              [d.strftime('%Y-%m-%d') for d in date_counts.index[::step]], 
+                              rotation=45, ha='right')
+                else:
+                    # For fewer dates, show all with better formatting
+                    plt.xticks(date_counts.index, 
+                              [d.strftime('%Y-%m-%d') for d in date_counts.index], 
+                              rotation=45, ha='right')
+                
                 plt.grid(True, alpha=0.3)
                 plt.tight_layout()
                 st.pyplot(fig)
                 plt.close()
                 
             except Exception as e:
-                st.warning(f"Could not create time series plot for {col}: {e}")
+                st.warning(f"Could not create date distribution plot for {col}: {e}")
+    else:
+        st.info("No date columns found for time series analysis.")
     
     # 8. OUTLIER DETECTION FOR NUMERIC COLUMNS
     if numeric_columns:

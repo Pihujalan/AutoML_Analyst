@@ -1,9 +1,0 @@
-{
-  "age": "Numeric",
-  "sex": "Category",
-  "bmi": "Numeric",
-  "children": "Numeric",
-  "smoker": "Category",
-  "region": "Category",
-  "charges": "ID"
-}

@@ -1,9 +1,8 @@
 column_name,num_missing,percent_missing
-<<<<<<< HEAD
 Row_ID,0,0.0
 Order_ID,0,0.0
-Order_Date,5841,59.60204081632653
-Ship_Date,5985,61.07142857142858
+Order_Date,0,0.0
+Ship_Date,0,0.0
 Ship_Mode,0,0.0
 Customer_ID,0,0.0
 Customer_Name,0,0.0
@@ -11,11 +10,10 @@ Segment,0,0.0
 Country,0,0.0
 City,0,0.0
 State,0,0.0
-Postal_Code,0,0.0
+Postal_Code,11,0.11224489795918367
 Region,0,0.0
 Product_ID,0,0.0
 Category,0,0.0
 Sub-Category,0,0.0
 Product_Name,0,0.0
 Sales,0,0.0
-=======
