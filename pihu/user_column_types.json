@@ -1,20 +1,9 @@
 {
-  "date": "Date",
-  "price": "Numeric",
-  "bedrooms": "Category",
-  "bathrooms": "Numeric",
-  "sqft_living": "Numeric",
-  "sqft_lot": "Numeric",
-  "floors": "Category",
-  "waterfront": "Category",
-  "view": "Category",
-  "condition": "Category",
-  "sqft_above": "Numeric",
-  "sqft_basement": "Numeric",
-  "yr_built": "Date",
-  "yr_renovated": "Date",
-  "street": "Category",
-  "city": "Category",
-  "statezip": "Category",
-  "country": "Category"
+  "Date": "Date",
+  "High": "Numeric",
+  "Low": "Numeric",
+  "Open": "Numeric",
+  "Close": "Numeric",
+  "Volume": "Numeric",
+  "Adj Close": "Numeric"
 }

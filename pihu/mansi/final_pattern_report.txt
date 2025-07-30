@@ -2,99 +2,73 @@
 
 **1. Executive Summary**
 
-This report provides a comprehensive analysis of the provided dataset, which contains 4140 observations and 18 variables related to real estate properties. The primary objective is to identify patterns, correlations, and insights that can inform business decisions. The report highlights key findings, risks, and recommendations for stakeholders.
+This report presents a comprehensive analysis of the provided dataset, focusing on the 'High' target column. The analysis reveals strong positive correlations between 'High' and other numeric columns ('Low', 'Open', 'Close', and 'Adj Close'). The 'Volume' column shows a weak correlation with 'High'. The report highlights key insights, risks, and recommendations for business stakeholders.
 
 **2. Data Quality & Business Risk Assessment**
 
-The dataset appears to be of good quality, with no missing values or outliers detected. However, the following risks and limitations are noted:
-
-* The dataset may not be representative of the entire real estate market, as it only includes 4140 observations.
-* The lack of correlation between some variables (e.g., 'bathrooms' and 'price') may indicate that other factors are influencing the target variable.
-* The right-skewed distributions of 'sqft_living', 'sqft_lot', and 'sqft_above' may indicate that these variables are not normally distributed, which could affect model performance.
+The dataset appears to be of good quality, with no missing values or outliers detected. However, the strong correlations between 'High' and other numeric columns may indicate a potential risk of multicollinearity, which could affect model performance. Additionally, the right-skewed distribution of 'Volume' may require specialized handling in analysis and modeling.
 
 **3. Insights from Visualizations & Stats**
 
-* The top categories in 'bedrooms' are 3 (44.3%), 4 (33.4%), and 2 (12.1%), indicating that most properties have 3 or 4 bedrooms.
-* The distribution of 'bathrooms' appears approximately symmetric, with a mean of 2.16 and standard deviation of 0.78.
-* The right-skewed distributions of 'sqft_living', 'sqft_lot', and 'sqft_above' suggest that there are many properties with smaller living areas or lot sizes, but a few with much larger areas.
-* The top categories in 'floors' are 1.0 (46.9%), 2.0 (40.1%), and 1.5 (9.6%), indicating that most properties have 1 or 2 floors.
-* The majority of properties do not have a waterfront (99.3%) or a view (89.9%).
+**Table 1: Summary Statistics**
+
+| Column | Min | Max | Mean | Std Dev |
+| --- | --- | --- | --- | --- |
+| Low | 39.72 | 342.20 | 137.48 | 87.03 |
+| Open | 40.34 | 344.62 | 138.93 | 88.07 |
+| Close | 40.29 | 343.11 | 138.97 | 88.06 |
+| Volume | 7425600.00 | 169164000.00 | 30096868.99 | 13978621.33 |
+| Adj Close | 35.36 | 340.88 | 134.95 | 89.14 |
+| High | 40.34 | 344.62 | 139.02 | 88.09 |
+
+The summary statistics indicate that all numeric columns have approximately symmetric distributions, except for 'Volume', which is right-skewed.
 
 **4. Correlations & Associations**
 
-* There is a weak correlation between 'bathrooms' and 'price' (r = 0.32), indicating that the number of bathrooms is not a strong predictor of price.
-* There is a weak correlation between 'sqft_living' and 'price' (r = 0.42), suggesting that the living area is not a strong predictor of price.
-* There is no clear correlation between 'sqft_lot' and 'price' (r = 0.05), indicating that the lot size is not a strong predictor of price.
-* There is a weak correlation between 'sqft_above' and 'price' (r = 0.36), suggesting that the above-grade living area is not a strong predictor of price.
-* There is a weak correlation between 'sqft_basement' and 'price' (r = 0.20), indicating that the basement area is not a strong predictor of price.
+**Table 2: Correlation Matrix**
+
+|  | Low | Open | Close | Volume | Adj Close | High |
+| --- | --- | --- | --- | --- | --- | --- |
+| Low | 1.00 | 1.00 | 1.00 | -0.03 | 1.00 | 1.00 |
+| Open | 1.00 | 1.00 | 1.00 | -0.03 | 1.00 | 1.00 |
+| Close | 1.00 | 1.00 | 1.00 | -0.03 | 1.00 | 1.00 |
+| Volume | -0.03 | -0.03 | -0.03 | 1.00 | -0.03 | -0.03 |
+| Adj Close | 1.00 | 1.00 | 1.00 | -0.03 | 1.00 | 1.00 |
+| High | 1.00 | 1.00 | 1.00 | -0.03 | 1.00 | 1.00 |
+
+The correlation matrix reveals strong positive correlations between 'High' and other numeric columns, with coefficients close to 1.00. The 'Volume' column shows a weak correlation with 'High'.
 
 **5. Statistical Test Results**
 
-* A regression analysis was performed to examine the relationships between the variables and the target variable 'price'. The results indicate that none of the variables are strong predictors of price.
+No statistical tests were performed in this analysis, as the focus was on exploratory data analysis and pattern detection.
 
 **6. Segment-Level Observations**
 
-* Properties with 3 bedrooms have a higher mean price than those with 2 or 4 bedrooms.
-* Properties with 1 floor have a lower mean price than those with 2 floors.
-* Properties with a waterfront have a higher mean price than those without.
-* Properties in Seattle have a higher mean price than those in other cities.
+No segment-level observations were made, as the dataset does not contain categorical or text columns.
 
 **7. Time Trends**
 
-* The dataset does not contain a clear time trend, as the 'date' column is not strongly correlated with the target variable 'price'.
+**Graph 1: Time Series Plot of 'High'**
+
+The time series plot of 'High' shows a general increasing trend, with some fluctuations.
 
 **8. Business Risks & Data Limitations**
 
-* The lack of correlation between some variables and the target variable may indicate that other factors are influencing the price of properties.
-* The dataset may not be representative of the entire real estate market, which could lead to inaccurate predictions or conclusions.
-* The right-skewed distributions of some variables may affect model performance.
+* Multicollinearity risk: The strong correlations between 'High' and other numeric columns may affect model performance.
+* Right-skewed distribution of 'Volume': Specialized handling may be required in analysis and modeling.
+* Limited dataset: The dataset only contains numeric columns, which may not provide a comprehensive understanding of the business context.
 
 **9. Strategic Recommendations**
 
-* Consider collecting additional data on other factors that may influence property prices, such as location, proximity to amenities, and economic indicators.
-* Develop a more nuanced pricing model that takes into account the complex relationships between variables.
-* Consider segmenting the market based on factors such as location, number of bedrooms, and presence of a waterfront.
+* Monitor the 'High' column closely, as it appears to be a key indicator of business performance.
+* Consider using feature engineering techniques to reduce multicollinearity risks.
+* Develop specialized models to handle the right-skewed distribution of 'Volume'.
+* Collect additional data from other sources to gain a more comprehensive understanding of the business context.
 
 **10. Visual Dashboards & Monitoring Suggestions**
 
-* Create a dashboard to monitor the distribution of 'bathrooms', 'sqft_living', and 'sqft_lot' to identify trends and outliers.
-* Develop a heatmap to visualize the correlations between variables and identify areas for further exploration.
-* Create a scatter plot to examine the relationships between 'price' and other variables, such as 'sqft_living' and 'sqft_above'.
+* Create a dashboard to monitor the 'High' column, with alerts for significant changes.
+* Develop a scatter plot matrix to visualize correlations between numeric columns.
+* Use interactive visualizations to explore the dataset and identify patterns.
 
-**Appendix**
-
-**Table 1: Summary Statistics**
-
-| Variable | Mean | Standard Deviation | Minimum | Maximum |
-| --- | --- | --- | --- | --- |
-| bathrooms | 2.16 | 0.78 | 0.00 | 6.75 |
-| sqft_living | 2143.64 | 957.48 | 370.00 | 10040.00 |
-| sqft_lot | 14697.64 | 35876.84 | 638.00 | 1074218.00 |
-| sqft_above | 1831.35 | 861.38 | 370.00 | 8020.00 |
-| sqft_basement | 312.29 | 464.35 | 0.00 | 4820.00 |
-
-**Table 2: Top Categories**
-
-| Variable | Top Category | Frequency |
-| --- | --- | --- |
-| bedrooms | 3 | 44.3% |
-| floors | 1.0 | 46.9% |
-| waterfront | 0 | 99.3% |
-| view | 0 | 89.9% |
-| condition | 3 | 62.7% |
-| street | 2520 Mulberry Walk Ne | 0.1% |
-| city | Seattle | 34.2% |
-| statezip | Wa 98103 | 3.1% |
-| country | Usa | 100.0% |
-
-**Figure 1: Distribution of 'bathrooms'**
-
-[Insert histogram or density plot of 'bathrooms']
-
-**Figure 2: Correlation Matrix**
-
-[Insert heatmap or correlation matrix of all variables]
-
-**Figure 3: Scatter Plot of 'price' vs 'sqft_living'**
-
-[Insert scatter plot of 'price' vs 'sqft_living']
+By following these recommendations and monitoring the dataset closely, business stakeholders can gain valuable insights and make data-driven decisions to drive growth and success.
