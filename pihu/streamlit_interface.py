@@ -168,11 +168,11 @@ if st.session_state.confirmed and st.session_state.df is not None:
         st.session_state.user_confirmed_types = None
     if "cleaning_result" not in st.session_state:
         # First run: no user choices yet
-        df, mismatches = clean_data_with_logs(st.session_state.df, log_path="logs/cleaning_log.txt")
+        df, mismatches, *_ = clean_data_with_logs(st.session_state.df, log_path="logs/cleaning_log.txt")
         st.session_state.cleaning_result = (df, mismatches)
     # If user just submitted choices, rerun cleaning with those
     if st.session_state.user_confirmed_types is not None:
-        df, mismatches = clean_data_with_logs(st.session_state.df, log_path="logs/cleaning_log.txt", user_confirmed_types=st.session_state.user_confirmed_types)
+        df, mismatches, *_ = clean_data_with_logs(st.session_state.df, log_path="logs/cleaning_log.txt", user_confirmed_types=st.session_state.user_confirmed_types)
         st.session_state.cleaned_df = df
         st.session_state.cleaning_result = (df, mismatches)
         st.session_state.user_confirmed_types = None

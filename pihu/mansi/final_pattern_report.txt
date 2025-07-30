@@ -2,63 +2,99 @@
 
 **1. Executive Summary**
 
-This report presents a comprehensive analysis of the provided dataset, focusing on sales patterns and customer behavior. The dataset consists of 9,800 records with 18 columns, including numeric, categorical, text, and date columns. Our analysis reveals key insights into customer segments, product categories, and geographic trends. We identify opportunities for growth, areas for improvement, and provide strategic recommendations for business stakeholders.
+This report provides a comprehensive analysis of the provided dataset, which contains 4140 observations and 18 variables related to real estate properties. The primary objective is to identify patterns, correlations, and insights that can inform business decisions. The report highlights key findings, risks, and recommendations for stakeholders.
 
 **2. Data Quality & Business Risk Assessment**
 
-Data quality is generally good, with no missing values detected. However, the lack of ID columns may pose a risk in tracking individual customer behavior over time. The dataset is heavily skewed towards the United States, which may limit the generalizability of findings to other regions.
+The dataset appears to be of good quality, with no missing values or outliers detected. However, the following risks and limitations are noted:
+
+* The dataset may not be representative of the entire real estate market, as it only includes 4140 observations.
+* The lack of correlation between some variables (e.g., 'bathrooms' and 'price') may indicate that other factors are influencing the target variable.
+* The right-skewed distributions of 'sqft_living', 'sqft_lot', and 'sqft_above' may indicate that these variables are not normally distributed, which could affect model performance.
 
 **3. Insights from Visualizations & Stats**
 
-**Table 1: Top 5 Categories by Sales**
-
-| Category | Sales (%) |
-| --- | --- |
-| Office Supplies | 60.3% |
-| Furniture | 21.2% |
-| Technology | 18.5% |
-| ... | ... |
-
-**Figure 1: Sales by Region**
-
-The West region dominates sales, followed by the East and Central regions.
+* The top categories in 'bedrooms' are 3 (44.3%), 4 (33.4%), and 2 (12.1%), indicating that most properties have 3 or 4 bedrooms.
+* The distribution of 'bathrooms' appears approximately symmetric, with a mean of 2.16 and standard deviation of 0.78.
+* The right-skewed distributions of 'sqft_living', 'sqft_lot', and 'sqft_above' suggest that there are many properties with smaller living areas or lot sizes, but a few with much larger areas.
+* The top categories in 'floors' are 1.0 (46.9%), 2.0 (40.1%), and 1.5 (9.6%), indicating that most properties have 1 or 2 floors.
+* The majority of properties do not have a waterfront (99.3%) or a view (89.9%).
 
 **4. Correlations & Associations**
 
-* A weak correlation (r = 0.00) is observed between 'Row ID' and 'Sales', indicating that sales are not dependent on the order in which customers are processed.
-* Strong associations exist between 'Segment' and 'Category', with Consumers preferring Office Supplies and Corporates opting for Technology products.
+* There is a weak correlation between 'bathrooms' and 'price' (r = 0.32), indicating that the number of bathrooms is not a strong predictor of price.
+* There is a weak correlation between 'sqft_living' and 'price' (r = 0.42), suggesting that the living area is not a strong predictor of price.
+* There is no clear correlation between 'sqft_lot' and 'price' (r = 0.05), indicating that the lot size is not a strong predictor of price.
+* There is a weak correlation between 'sqft_above' and 'price' (r = 0.36), suggesting that the above-grade living area is not a strong predictor of price.
+* There is a weak correlation between 'sqft_basement' and 'price' (r = 0.20), indicating that the basement area is not a strong predictor of price.
 
 **5. Statistical Test Results**
 
-A chi-squared test reveals a significant association between 'Segment' and 'Category' (p < 0.01).
+* A regression analysis was performed to examine the relationships between the variables and the target variable 'price'. The results indicate that none of the variables are strong predictors of price.
 
 **6. Segment-Level Observations**
 
-* Consumers (52.1% of sales) prefer Office Supplies, with a focus on Binders and Paper.
-* Corporates (30.1% of sales) opt for Technology products, with a emphasis on Furnishings.
-* Home Office customers (17.8% of sales) show a balanced preference for Office Supplies and Furniture.
+* Properties with 3 bedrooms have a higher mean price than those with 2 or 4 bedrooms.
+* Properties with 1 floor have a lower mean price than those with 2 floors.
+* Properties with a waterfront have a higher mean price than those without.
+* Properties in Seattle have a higher mean price than those in other cities.
 
 **7. Time Trends**
 
-Analysis of 'Order Date' and 'Ship Date' reveals a consistent sales pattern throughout the year, with no significant seasonal fluctuations.
+* The dataset does not contain a clear time trend, as the 'date' column is not strongly correlated with the target variable 'price'.
 
 **8. Business Risks & Data Limitations**
 
-* The dataset's US-centric nature may limit the applicability of findings to other regions.
-* The lack of ID columns hinders tracking individual customer behavior and loyalty.
-* The dataset may not capture external factors influencing sales, such as marketing campaigns or competitor activity.
+* The lack of correlation between some variables and the target variable may indicate that other factors are influencing the price of properties.
+* The dataset may not be representative of the entire real estate market, which could lead to inaccurate predictions or conclusions.
+* The right-skewed distributions of some variables may affect model performance.
 
 **9. Strategic Recommendations**
 
-1. **Product Diversification**: Expand the Office Supplies category to cater to the growing demand from Consumers.
-2. **Targeted Marketing**: Develop targeted marketing campaigns for Corporates and Home Office customers, highlighting Technology and Furniture products, respectively.
-3. **Regional Expansion**: Explore opportunities to expand into other regions, leveraging the insights gained from the US market.
-4. **Customer Loyalty Program**: Implement a customer loyalty program to track individual customer behavior and encourage repeat business.
+* Consider collecting additional data on other factors that may influence property prices, such as location, proximity to amenities, and economic indicators.
+* Develop a more nuanced pricing model that takes into account the complex relationships between variables.
+* Consider segmenting the market based on factors such as location, number of bedrooms, and presence of a waterfront.
 
 **10. Visual Dashboards & Monitoring Suggestions**
 
-* Develop a sales dashboard to track regional performance, product categories, and customer segments.
-* Monitor customer behavior and loyalty metrics to inform targeted marketing campaigns.
-* Create a product catalog dashboard to visualize product offerings and identify opportunities for diversification.
+* Create a dashboard to monitor the distribution of 'bathrooms', 'sqft_living', and 'sqft_lot' to identify trends and outliers.
+* Develop a heatmap to visualize the correlations between variables and identify areas for further exploration.
+* Create a scatter plot to examine the relationships between 'price' and other variables, such as 'sqft_living' and 'sqft_above'.
 
-By implementing these recommendations and monitoring key metrics, the business can optimize its sales strategy, improve customer satisfaction, and drive growth in the competitive market.
+**Appendix**
+
+**Table 1: Summary Statistics**
+
+| Variable | Mean | Standard Deviation | Minimum | Maximum |
+| --- | --- | --- | --- | --- |
+| bathrooms | 2.16 | 0.78 | 0.00 | 6.75 |
+| sqft_living | 2143.64 | 957.48 | 370.00 | 10040.00 |
+| sqft_lot | 14697.64 | 35876.84 | 638.00 | 1074218.00 |
+| sqft_above | 1831.35 | 861.38 | 370.00 | 8020.00 |
+| sqft_basement | 312.29 | 464.35 | 0.00 | 4820.00 |
+
+**Table 2: Top Categories**
+
+| Variable | Top Category | Frequency |
+| --- | --- | --- |
+| bedrooms | 3 | 44.3% |
+| floors | 1.0 | 46.9% |
+| waterfront | 0 | 99.3% |
+| view | 0 | 89.9% |
+| condition | 3 | 62.7% |
+| street | 2520 Mulberry Walk Ne | 0.1% |
+| city | Seattle | 34.2% |
+| statezip | Wa 98103 | 3.1% |
+| country | Usa | 100.0% |
+
+**Figure 1: Distribution of 'bathrooms'**
+
+[Insert histogram or density plot of 'bathrooms']
+
+**Figure 2: Correlation Matrix**
+
+[Insert heatmap or correlation matrix of all variables]
+
+**Figure 3: Scatter Plot of 'price' vs 'sqft_living'**
+
+[Insert scatter plot of 'price' vs 'sqft_living']

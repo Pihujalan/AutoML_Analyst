@@ -1,16 +1,19 @@
-â€¢ 'Row ID' ranges from 1.00 to 9800.00, mean: 4900.50, std dev: 2829.16. The distribution appears approximately symmetric.
-â€¢ 'Row ID' vs 'Sales' shows a weak or no clear correlation (r = 0.00).
-â€¢ Top categories in 'Order ID' are: Ca-2018-100111 (0.1%), Ca-2018-157987 (0.1%), Ca-2017-165330 (0.1%).
-â€¢ Top categories in 'Ship Mode' are: Standard Class (59.8%), Second Class (19.4%), First Class (15.3%).
-â€¢ Top categories in 'Customer ID' are: Wb-21850 (0.4%), Ma-17560 (0.3%), Pp-18955 (0.3%).
-â€¢ Top categories in 'Customer Name' are: William Brown (0.4%), Matt Abelman (0.3%), Paul Prost (0.3%).
-â€¢ Top categories in 'Segment' are: Consumer (52.1%), Corporate (30.1%), Home Office (17.8%).
-â€¢ Top categories in 'Country' are: United States (100.0%).
-â€¢ Top categories in 'City' are: New York City (9.1%), Los Angeles (7.4%), Philadelphia (5.4%).
-â€¢ Top categories in 'State' are: California (19.9%), New York (11.2%), Texas (9.9%).
-â€¢ Top categories in 'Postal Code' are: 10035.0 (2.6%), 10024.0 (2.3%), 10009.0 (2.2%).
-â€¢ Top categories in 'Region' are: West (32.0%), East (28.4%), Central (23.2%).
-â€¢ Top categories in 'Product ID' are: Off-Pa-10001970 (0.2%), Tec-Ac-10003832 (0.2%), Fur-Fu-10004270 (0.2%).
-â€¢ Top categories in 'Category' are: Office Supplies (60.3%), Furniture (21.2%), Technology (18.5%).
-â€¢ Top categories in 'Sub-Category' are: Binders (15.2%), Paper (13.7%), Furnishings (9.5%).
-â€¢ Top categories in 'Product Name' are: Staple Envelope (0.5%), Staples (0.5%), Easy-Staple Paper (0.4%).
+• Top categories in 'bedrooms' are: 3 (44.3%), 4 (33.4%), 2 (12.1%).
+• 'bathrooms' ranges from 0.00 to 6.75, mean: 2.16, std dev: 0.78. The distribution appears approximately symmetric.
+• 'bathrooms' vs 'price' shows a weak or no clear correlation (r = 0.32).
+• 'sqft_living' ranges from 370.00 to 10040.00, mean: 2143.64, std dev: 957.48. The distribution appears right-skewed.
+• 'sqft_living' vs 'price' shows a weak or no clear correlation (r = 0.42).
+• 'sqft_lot' ranges from 638.00 to 1074218.00, mean: 14697.64, std dev: 35876.84. The distribution appears right-skewed.
+• 'sqft_lot' vs 'price' shows a weak or no clear correlation (r = 0.05).
+• Top categories in 'floors' are: 1.0 (46.9%), 2.0 (40.1%), 1.5 (9.6%).
+• Top categories in 'waterfront' are: 0 (99.3%), 1 (0.7%).
+• Top categories in 'view' are: 0 (89.9%), 2 (4.5%), 3 (2.7%).
+• Top categories in 'condition' are: 3 (62.7%), 4 (26.9%), 5 (9.6%).
+• 'sqft_above' ranges from 370.00 to 8020.00, mean: 1831.35, std dev: 861.38. The distribution appears right-skewed.
+• 'sqft_above' vs 'price' shows a weak or no clear correlation (r = 0.36).
+• 'sqft_basement' ranges from 0.00 to 4820.00, mean: 312.29, std dev: 464.35. The distribution appears right-skewed.
+• 'sqft_basement' vs 'price' shows a weak or no clear correlation (r = 0.20).
+• Top categories in 'street' are: 2520 Mulberry Walk Ne (0.1%), 2500 Mulberry Walk Ne (0.1%), 1018 Ne 96Th St (0.0%).
+• Top categories in 'city' are: Seattle (34.2%), Renton (6.3%), Bellevue (6.3%).
+• Top categories in 'statezip' are: Wa 98103 (3.1%), Wa 98052 (2.9%), Wa 98117 (2.9%).
+• Top categories in 'country' are: Usa (100.0%).

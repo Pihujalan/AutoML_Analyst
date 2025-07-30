@@ -537,37 +537,6 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
             print(f"✅ Filled missing values in text column '{col}' with 'Unknown'")
 
 
-
-
-    
-    
-        # --- DROP ID & NAME columns classified from final_types ---
-    id_name_cols = [col for col, typ in final_types.items() if typ.lower() in ("id", "name")]
-    if id_name_cols:
-        print(f"🗑️ Dropping ID/Name columns: {id_name_cols}")
-        df = df.drop(columns=id_name_cols)
-    else:
-        print("No ID or Name columns found to drop!")
-
-    # --- Force-drop columns with 'id' or 'name' in their name (except product name etc) ---
-    exclude_safe = ("product name", "product_id", "sub-category", "category", "segment")  # extend as needed
-
-    cols_to_force_drop = []
-    for col in df.columns:
-        col_lower = col.lower().replace("_", " ").strip()
-        # Drop if 'id' or 'name' in column, unless it's in exclude_safe
-        if (("id" in col_lower or "name" in col_lower) and
-            not any(safe in col_lower for safe in exclude_safe)):
-            cols_to_force_drop.append(col)
-
-    if cols_to_force_drop:
-        print(f"Force-dropping these ID/name columns: {cols_to_force_drop}")
-        df = df.drop(columns=cols_to_force_drop)
-    df.to_csv("cleaned_input.csv", index=False)
-    print("✅ Cleaned data saved to 'cleaned_input.csv'")
-    
-    return df
-    
     # --- Save cleaned data ---
     os.makedirs("data", exist_ok=True)
     df.to_csv("data/cleaned_input.csv", index=False)
