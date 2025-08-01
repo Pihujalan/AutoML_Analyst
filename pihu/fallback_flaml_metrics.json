@@ -9,7 +9,7 @@
         "mae": 126601.6635,
         "rmse": 225946.6236
     },
-    "training_time": 180.5,
+    "training_time": 179.83,
     "fallback_time_budget": 180,
     "best_estimator": "xgboost"
 }

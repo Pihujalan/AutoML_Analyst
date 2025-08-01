@@ -1,10 +1,18 @@
-â€¢ 'Low' ranges from 39.72 to 342.20, mean: 137.48, std dev: 87.03. The distribution appears approximately symmetric.
-â€¢ 'Low' vs 'High' shows a strong positive correlation (r = 1.00).
-â€¢ 'Open' ranges from 40.34 to 344.62, mean: 138.93, std dev: 88.07. The distribution appears approximately symmetric.
-â€¢ 'Open' vs 'High' shows a strong positive correlation (r = 1.00).
-â€¢ 'Close' ranges from 40.29 to 343.11, mean: 138.97, std dev: 88.06. The distribution appears approximately symmetric.
-â€¢ 'Close' vs 'High' shows a strong positive correlation (r = 1.00).
-â€¢ 'Volume' ranges from 7425600.00 to 169164000.00, mean: 30096868.99, std dev: 13978621.33. The distribution appears right-skewed.
-â€¢ 'Volume' vs 'High' shows a weak or no clear correlation (r = -0.03).
-â€¢ 'Adj Close' ranges from 35.36 to 340.88, mean: 134.95, std dev: 89.14. The distribution appears approximately symmetric.
-â€¢ 'Adj Close' vs 'High' shows a strong positive correlation (r = 1.00).
+• Top categories in 'bedrooms' are: 3 (44.3%), 4 (33.4%), 2 (12.1%).
+• Top categories in 'bathrooms' are: 2.5 (25.7%), 1.0 (16.3%), 1.75 (13.4%).
+• 'sqft_living' ranges from 370.00 to 10040.00, mean: 2143.64, std dev: 957.48. The distribution appears right-skewed.
+• 'sqft_living' vs 'price' shows a weak or no clear correlation (r = 0.42).
+• 'sqft_lot' ranges from 638.00 to 1074218.00, mean: 14697.64, std dev: 35876.84. The distribution appears right-skewed.
+• 'sqft_lot' vs 'price' shows a weak or no clear correlation (r = 0.05).
+• Top categories in 'floors' are: 1.0 (46.9%), 2.0 (40.1%), 1.5 (9.6%).
+• Top categories in 'waterfront' are: 0 (99.3%), 1 (0.7%).
+• Top categories in 'view' are: 0 (89.9%), 2 (4.5%), 3 (2.7%).
+• Top categories in 'condition' are: 3 (62.7%), 4 (26.9%), 5 (9.6%).
+• 'sqft_above' ranges from 370.00 to 8020.00, mean: 1831.35, std dev: 861.38. The distribution appears right-skewed.
+• 'sqft_above' vs 'price' shows a weak or no clear correlation (r = 0.36).
+• 'sqft_basement' ranges from 0.00 to 4820.00, mean: 312.29, std dev: 464.35. The distribution appears right-skewed.
+• 'sqft_basement' vs 'price' shows a weak or no clear correlation (r = 0.20).
+• Top categories in 'street' are: 2520 Mulberry Walk Ne (0.1%), 2500 Mulberry Walk Ne (0.1%), 1610 N 185Th St (0.0%).
+• Top categories in 'city' are: Seattle (34.2%), Renton (6.3%), Bellevue (6.3%).
+• Top categories in 'statezip' are: Wa 98103 (3.1%), Wa 98052 (2.9%), Wa 98117 (2.9%).
+• Top categories in 'country' are: Usa (100.0%).

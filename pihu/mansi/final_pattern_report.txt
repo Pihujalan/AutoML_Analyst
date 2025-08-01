@@ -2,73 +2,88 @@
 
 **1. Executive Summary**
 
-This report presents a comprehensive analysis of the provided dataset, focusing on the 'High' target column. The analysis reveals strong positive correlations between 'High' and other numeric columns ('Low', 'Open', 'Close', and 'Adj Close'). The 'Volume' column shows a weak correlation with 'High'. The report highlights key insights, risks, and recommendations for business stakeholders.
+This report provides a comprehensive analysis of a real estate dataset, comprising 4140 observations and 18 features. The target column is 'price', and the analysis aims to identify patterns, correlations, and insights that can inform business strategies. The report highlights key findings, risks, and recommendations for stakeholders.
 
 **2. Data Quality & Business Risk Assessment**
 
-The dataset appears to be of good quality, with no missing values or outliers detected. However, the strong correlations between 'High' and other numeric columns may indicate a potential risk of multicollinearity, which could affect model performance. Additionally, the right-skewed distribution of 'Volume' may require specialized handling in analysis and modeling.
+Data quality is generally good, with no missing values detected. However, the right-skewed distributions of 'sqft_living', 'sqft_lot', 'sqft_above', and 'sqft_basement' may indicate outliers or non-normality, which could impact model performance.
+
+Business risks associated with this dataset include:
+
+* Overreliance on Seattle-based data (34.2% of observations), which may not be representative of other regions.
+* Limited geographic diversity, with 100% of observations from the USA.
+* Potential biases in 'condition' and 'view' ratings, which may not accurately reflect property conditions.
 
 **3. Insights from Visualizations & Stats**
 
-**Table 1: Summary Statistics**
+**Table 1: Top Categories in Categorical Columns**
 
-| Column | Min | Max | Mean | Std Dev |
-| --- | --- | --- | --- | --- |
-| Low | 39.72 | 342.20 | 137.48 | 87.03 |
-| Open | 40.34 | 344.62 | 138.93 | 88.07 |
-| Close | 40.29 | 343.11 | 138.97 | 88.06 |
-| Volume | 7425600.00 | 169164000.00 | 30096868.99 | 13978621.33 |
-| Adj Close | 35.36 | 340.88 | 134.95 | 89.14 |
-| High | 40.34 | 344.62 | 139.02 | 88.09 |
+| Column | Top Category | Frequency |
+| --- | --- | --- |
+| bedrooms | 3 | 44.3% |
+| bathrooms | 2.5 | 25.7% |
+| floors | 1.0 | 46.9% |
+| waterfront | 0 | 99.3% |
+| view | 0 | 89.9% |
+| condition | 3 | 62.7% |
+| city | Seattle | 34.2% |
+| statezip | Wa 98103 | 3.1% |
+| country | Usa | 100.0% |
 
-The summary statistics indicate that all numeric columns have approximately symmetric distributions, except for 'Volume', which is right-skewed.
+**Figure 1: Distribution of 'sqft_living'**
+
+The right-skewed distribution of 'sqft_living' suggests that most properties have smaller living areas, with a few outliers having larger areas.
 
 **4. Correlations & Associations**
 
-**Table 2: Correlation Matrix**
+Correlation analysis reveals weak or no clear correlations between:
 
-|  | Low | Open | Close | Volume | Adj Close | High |
-| --- | --- | --- | --- | --- | --- | --- |
-| Low | 1.00 | 1.00 | 1.00 | -0.03 | 1.00 | 1.00 |
-| Open | 1.00 | 1.00 | 1.00 | -0.03 | 1.00 | 1.00 |
-| Close | 1.00 | 1.00 | 1.00 | -0.03 | 1.00 | 1.00 |
-| Volume | -0.03 | -0.03 | -0.03 | 1.00 | -0.03 | -0.03 |
-| Adj Close | 1.00 | 1.00 | 1.00 | -0.03 | 1.00 | 1.00 |
-| High | 1.00 | 1.00 | 1.00 | -0.03 | 1.00 | 1.00 |
+* 'sqft_living' and 'price' (r = 0.42)
+* 'sqft_lot' and 'price' (r = 0.05)
+* 'sqft_above' and 'price' (r = 0.36)
+* 'sqft_basement' and 'price' (r = 0.20)
 
-The correlation matrix reveals strong positive correlations between 'High' and other numeric columns, with coefficients close to 1.00. The 'Volume' column shows a weak correlation with 'High'.
+These findings suggest that other factors may be driving property prices.
 
 **5. Statistical Test Results**
 
-No statistical tests were performed in this analysis, as the focus was on exploratory data analysis and pattern detection.
+No significant statistical tests were conducted, as the focus of this report is on exploratory data analysis and pattern identification.
 
 **6. Segment-Level Observations**
 
-No segment-level observations were made, as the dataset does not contain categorical or text columns.
+Segment-level analysis reveals:
+
+* Properties with 3 bedrooms and 2.5 bathrooms are most common (44.3% and 25.7%, respectively).
+* Most properties have a single floor (46.9%) and no waterfront (99.3%).
+* Seattle-based properties dominate the dataset (34.2%).
 
 **7. Time Trends**
 
-**Graph 1: Time Series Plot of 'High'**
-
-The time series plot of 'High' shows a general increasing trend, with some fluctuations.
+No significant time trends were identified, as the dataset does not contain sufficient temporal information.
 
 **8. Business Risks & Data Limitations**
 
-* Multicollinearity risk: The strong correlations between 'High' and other numeric columns may affect model performance.
-* Right-skewed distribution of 'Volume': Specialized handling may be required in analysis and modeling.
-* Limited dataset: The dataset only contains numeric columns, which may not provide a comprehensive understanding of the business context.
+Business risks and data limitations include:
+
+* Overreliance on Seattle-based data, which may not be representative of other regions.
+* Limited geographic diversity, which may impact model generalizability.
+* Potential biases in 'condition' and 'view' ratings, which may not accurately reflect property conditions.
 
 **9. Strategic Recommendations**
 
-* Monitor the 'High' column closely, as it appears to be a key indicator of business performance.
-* Consider using feature engineering techniques to reduce multicollinearity risks.
-* Develop specialized models to handle the right-skewed distribution of 'Volume'.
-* Collect additional data from other sources to gain a more comprehensive understanding of the business context.
+Based on the analysis, we recommend:
+
+* Collecting more data from diverse geographic regions to improve model generalizability.
+* Developing more nuanced models that account for non-linear relationships between features and 'price'.
+* Implementing data quality control measures to ensure accurate 'condition' and 'view' ratings.
+* Conducting further analysis to identify factors driving property prices.
 
 **10. Visual Dashboards & Monitoring Suggestions**
 
-* Create a dashboard to monitor the 'High' column, with alerts for significant changes.
-* Develop a scatter plot matrix to visualize correlations between numeric columns.
-* Use interactive visualizations to explore the dataset and identify patterns.
+We suggest creating visual dashboards to monitor trends in:
 
-By following these recommendations and monitoring the dataset closely, business stakeholders can gain valuable insights and make data-driven decisions to drive growth and success.
+* Property prices by city and state
+* Distribution of 'sqft_living', 'sqft_lot', 'sqft_above', and 'sqft_basement'
+* Top categories in categorical columns
+
+Regular monitoring of these dashboards can help identify changes in market trends and inform business strategies.
