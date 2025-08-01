@@ -936,48 +936,101 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
             except Exception as e:
                 st.warning(f"Could not create histogram for {col}: {e}")
     
-    # 2. CATEGORICAL COLUMNS - BAR CHARTS
-    if category_columns:
-        st.markdown("#### 📊 Bar Charts for Categorical Columns")
-        for col in category_columns:
-            try:
-                fig, ax = plt.subplots(figsize=(12, 6))
-                
-                # Get value counts and limit to top 20 categories for readability
-                value_counts = df[col].value_counts().head(20)
-                
-                plt.bar(range(len(value_counts)), value_counts.values, alpha=0.7, edgecolor='black')
-                plt.title(f'Distribution of {col}')
-                plt.xlabel(col)
-                plt.ylabel('Count')
-                plt.xticks(range(len(value_counts)), value_counts.index, rotation=45, ha='right')
-                plt.grid(True, alpha=0.3)
-                st.pyplot(fig)
-                plt.close()
-                
-            except Exception as e:
-                st.warning(f"Could not create bar chart for {col}: {e}")
-    
-    # 3. CORRELATION HEATMAP (NUMERIC COLUMNS ONLY)
-    if len(numeric_columns) > 1:
-        st.markdown("#### 🔗 Correlation Heatmap (Numeric Columns)")
+        # 2. CATEGORICAL COLUMNS - BAR CHARTS
+        if category_columns:
+            st.markdown("#### 📊 Bar Charts for Categorical Columns")
+            for col in category_columns:
+                try:
+                    fig, ax = plt.subplots(figsize=(12, 6))
+                    
+                    # Get value counts and limit to top 20 categories for readability
+                    value_counts = df[col].value_counts().head(20)
+                    
+                    plt.bar(range(len(value_counts)), value_counts.values, alpha=0.7, edgecolor='black')
+                    plt.title(f'Distribution of {col}')
+                    plt.xlabel(col)
+                    plt.ylabel('Count')
+                    plt.xticks(range(len(value_counts)), value_counts.index, rotation=45, ha='right')
+                    plt.grid(True, alpha=0.3)
+                    st.pyplot(fig)
+                    plt.close()
+                    
+                except Exception as e:
+                    st.warning(f"Could not create bar chart for {col}: {e}")
+        
+        # 3. CORRELATION HEATMAP (NUMERIC COLUMNS ONLY)
+        # === NEW: TARGET-FEATURE CORRELATION HEATMAP ===
+    if target_col and target_col in numeric_columns and len(numeric_columns) > 1:
+        st.markdown("#### 🔗 Correlation With Target")
         try:
-            # Create correlation matrix for numeric columns only
-            corr_matrix = df[numeric_columns].corr()
+            # Calculate correlation coefficients with the target column only
+            # Exclude target_col from feature list
+            features = [col for col in numeric_columns if col != target_col]
             
-            fig, ax = plt.subplots(figsize=(10, 8))
-            sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', center=0, 
-                       square=True, linewidths=0.5, cbar_kws={"shrink": .8})
-            plt.title('Correlation Matrix of Numeric Variables')
-            plt.tight_layout()
-            st.pyplot(fig)
-            plt.close()
-            
+            if not features:
+                st.info("No other numeric features available for correlation analysis.")
+            else:
+                # Compute Pearson correlation (handle NaNs robustly)
+                corrs = df[features + [target_col]].corr()[target_col].drop(target_col)
+                
+                # Filter features with abs(corr) >= 0.1
+                corrs = corrs[abs(corrs) >= 0.1]
+                
+                if not corrs.empty:
+                    # Sort features by descending absolute correlation
+                    corrs = corrs.reindex(corrs.abs().sort_values(ascending=False).index)
+                    
+                    # Apply column aliases if provided (you can customize this dictionary)
+                    column_alias = {}  # Add your custom aliases here, e.g., {'old_name': 'New Display Name'}
+                    
+                    def beautify_name(col):
+                        if col in column_alias:
+                            return column_alias[col]
+                        # Default beautification: replace underscores with spaces and title case
+                        return col.replace('_', ' ').title()
+                    
+                    display_labels = [beautify_name(c) for c in corrs.index]
+                    target_display = beautify_name(target_col)
+                    
+                    # Create 1-row heatmap
+                    fig, ax = plt.subplots(figsize=(min(15, max(8, len(corrs) * 1.2)), 3))
+                    
+                    # Reshape correlation values into a 2D array for heatmap
+                    corr_matrix = corrs.values.reshape(1, -1)
+                    
+                    sns.heatmap(
+                        corr_matrix, 
+                        annot=True, 
+                        fmt=".3f", 
+                        cmap='coolwarm', 
+                        center=0,
+                        cbar=True, 
+                        xticklabels=display_labels, 
+                        yticklabels=[f"Correlation with {target_display}"],
+                        cbar_kws={"shrink": .8}
+                    )
+                    
+                    plt.title(f"Feature Correlations with {target_display} (|r| ≥ 0.1)")
+                    plt.xticks(rotation=45, ha='right')
+                    plt.yticks(rotation=0)
+                    plt.tight_layout()
+                    st.pyplot(fig)
+                    plt.close()
+                    
+                    # Show correlation values in text format as well
+                    st.markdown("**Correlation Values:**")
+                    for feature, corr_value in corrs.items():
+                        direction = "↗️" if corr_value > 0 else "↘️"
+                        st.write(f"{direction} **{beautify_name(feature)}**: {corr_value:.3f}")
+                        
+                else:
+                    st.info(f"No numeric features have abs(correlation) ≥ 0.1 with the target ({beautify_name(target_col)}).")
+                    
         except Exception as e:
-            st.warning(f"Could not create correlation heatmap: {e}")
+            st.warning(f"Could not create target correlation heatmap: {e}")
     else:
-        st.info(f"Correlation heatmap requires at least 2 numeric columns. Found: {len(numeric_columns)}")
-    
+        st.info("Correlation plot requires a numeric target and at least one other numeric feature.")
+
     # 4. BOX PLOTS FOR NUMERIC COLUMNS
     if numeric_columns:
         st.markdown("#### 📦 Box Plots for Numeric Columns")
