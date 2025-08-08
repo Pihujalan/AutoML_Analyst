@@ -1,0 +1,70 @@
+# Core Data Science Libraries
+pandas>=1.5.0
+numpy>=1.21.0
+scikit-learn>=1.1.0
+scipy>=1.9.0
+
+# AutoML Libraries
+flaml>=1.0.0
+lightgbm>=3.3.0
+xgboost>=1.6.0
+
+# Visualization
+matplotlib>=3.5.0
+seaborn>=0.11.0
+plotly>=5.10.0
+
+# Web Interface
+streamlit>=1.22.0
+streamlit-option-menu>=0.3.0
+
+# API and HTTP
+requests>=2.28.0
+aiohttp>=3.8.0
+
+# Data Processing
+openpyxl>=3.0.0
+xlrd>=2.0.0
+python-dotenv>=0.19.0
+
+# Statistical Analysis
+statsmodels>=0.13.0
+
+# SHAP for Model Interpretation
+shap>=0.41.0
+
+# Progress Bars
+tqdm>=4.64.0
+
+# Configuration
+pyyaml>=6.0
+
+# Testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# Development Tools
+black>=22.0.0
+flake8>=5.0.0
+isort>=5.10.0
+
+# Jupyter (optional)
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# Google Sheets Integration (optional)
+gspread>=5.0.0
+google-auth>=2.0.0
+google-auth-oauthlib>=0.5.0
+google-auth-httplib2>=0.1.0
+
+# Database (optional)
+sqlalchemy>=1.4.0
+psycopg2-binary>=2.9.0
+
+# Logging
+loguru>=0.6.0
+
+# Utilities
+python-dateutil>=2.8.0
+pytz>=2022.1 

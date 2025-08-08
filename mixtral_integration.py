@@ -233,7 +233,8 @@ if __name__ == "__main__":
         model_metrics = {"model_used": "unknown", "test_metrics": {}}
     
     # Your Together AI API key
-    TOGETHER_API_KEY = "your_together_api_key_here"
+    import os
+    TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY", "your_together_api_key_here")
     
     # Generate business intelligence report
     report, filename = integrate_mixtral_business_intelligence(

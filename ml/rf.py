@@ -6,10 +6,10 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 # 🔹 Load training data
-X_train = pd.read_csv("mansi/X_train.csv")
-y_train = pd.read_csv("mansi/Y_train.csv").squeeze()  # convert to Series
-y_test = pd.read_csv("mansi/Y_test.csv").squeeze()  # convert to Series
-X_test = pd.read_csv("mansi/X_test.csv")
+X_train = pd.read_csv("data_processing/X_train.csv")
+y_train = pd.read_csv("data_processing/Y_train.csv").squeeze()  # convert to Series
+y_test = pd.read_csv("data_processing/Y_test.csv").squeeze()  # convert to Series
+X_test = pd.read_csv("data_processing/X_test.csv")
 # 🔹 Define hyperparameter grid
 param_grid = {
     'n_estimators': [100, 200, 300, 500],

@@ -3,41 +3,41 @@
 ## 📋 **Phase 1: Folder Structure Reorganization**
 
 ### **Current → New Structure:**
-- `pihu/` → `streamlit_app/`
-- `mansi/` → `data_processing/`
-- `data/` → `datasets/` (optional)
+- `streamlit_app/` → `streamlit_app/`
+- `data_processing/` → `data_processing/`
+- `datasets/` → `datasets/` (optional)
 
 ## 📋 **Phase 2: Sensitive Information Removal**
 
 ### **API Keys to Remove/Replace:**
 1. **ml/fullmodel.py** - Lines 36-40: Multiple API keys
-2. **mansi/dataCleaning.py** - Lines 65, 71-73: Multiple API keys
+2. **data_processing/dataCleaning.py** - Lines 65, 71-73: Multiple API keys
 3. **mixtral_integration.py** - Line 235: API key placeholder
 4. **creds.json** - Entire file (Google credentials)
 
 ### **Personal References to Remove:**
-1. **mansi/dataCleaning.py** - Line 69: "Mansi's" comment
+1. **data_processing/dataCleaning.py** - Line 69: "Mansi's" comment
 2. **merged_pattern_analysis.py** - Line 204: "Pihu's Additional Functions"
 
 ## 📋 **Phase 3: Path Updates Required**
 
 ### **Files with Hardcoded Paths:**
-1. **ml/fullmodel.py** - Multiple "mansi/" and "pihu/" references
-2. **ml/rf.py** - "mansi/" paths
-3. **ml/rfauto.py** - "mansi/" paths
-4. **model_training.py** - "mansi/" paths
-5. **merged_pattern_analysis.py** - "mansi/" paths
-6. **test_predictions.py** - "mansi/" paths
-7. **pihu/streamlit_interface.py** - "mansi/" imports
-8. **pihu/mansi/streamlit_interface_modified.py** - "mansi/" imports
+1. **ml/fullmodel.py** - Multiple "data_processing/" and "streamlit_app/" references
+2. **ml/rf.py** - "data_processing/" paths
+3. **ml/rfauto.py** - "data_processing/" paths
+4. **model_training.py** - "data_processing/" paths
+5. **merged_pattern_analysis.py** - "data_processing/" paths
+6. **test_predictions.py** - "data_processing/" paths
+7. **streamlit_app/streamlit_interface.py** - "data_processing/" imports
+8. **streamlit_app/data_processing/streamlit_interface_modified.py** - "data_processing/" imports
 
 ## 📋 **Phase 4: Configuration Files**
 
 ### **Files to Update:**
-1. **pihu/final_column_types.json** → **streamlit_app/final_column_types.json**
-2. **pihu/user_column_types.json** → **streamlit_app/user_column_types.json**
-3. **mansi/target_config.json** → **data_processing/target_config.json**
-4. **mansi/final_column_types.json** → **data_processing/final_column_types.json**
+1. **streamlit_app/final_column_types.json** → **streamlit_app/final_column_types.json**
+2. **streamlit_app/user_column_types.json** → **streamlit_app/user_column_types.json**
+3. **data_processing/target_config.json** → **data_processing/target_config.json**
+4. **data_processing/final_column_types.json** → **data_processing/final_column_types.json**
 
 ## 📋 **Phase 5: Documentation Updates**
 

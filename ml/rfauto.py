@@ -304,10 +304,10 @@ def train_rf_model(X_train, y_train, X_test, y_test):
     return best_rf, {"r2": r2, "mae": mae, "rmse": rmse}, {"r2": test_r2, "mae": test_mae, "rmse": test_rmse}
 
 # 🔽 🔽 🔽 FUNCTION CALL — DO NOT REMOVE 🔽 🔽 🔽
-X_train = pd.read_csv("mansi/X_train.csv")
-y_train = pd.read_csv("mansi/Y_train.csv").squeeze()
-X_test = pd.read_csv("mansi/X_test.csv")
-y_test = pd.read_csv("mansi/Y_test.csv").squeeze()
+X_train = pd.read_csv("data_processing/X_train.csv")
+y_train = pd.read_csv("data_processing/Y_train.csv").squeeze()
+X_test = pd.read_csv("data_processing/X_test.csv")
+y_test = pd.read_csv("data_processing/Y_test.csv").squeeze()
 
 rf_model, rf_train_metrics, rf_test_metrics = train_rf_model(X_train, y_train, X_test, y_test)
 #===============================================================================================================

@@ -10,9 +10,9 @@ from scipy.stats import skew, kurtosis, zscore
 if not os.path.exists("plots"):
     os.mkdir("plots")
 
-with open("mansi/final_column_types.json", "r") as f:
+with open("data_processing/final_column_types.json", "r") as f:
     final_column_types = json.load(f)
-df = pd.read_csv("mansi/cleaned_input.csv")
+df = pd.read_csv("data_processing/cleaned_input.csv")
 df.columns = df.columns.str.lower()
 
 # --- Missing Value Pattern Analysis ---
@@ -24,8 +24,8 @@ missing_summary = pd.DataFrame({
     "percent_missing": df.isnull().mean().values * 100
 })
 
-missing_summary.to_csv("mansi/missing_summary.csv", index=False)
-print("✅ Missing value summary saved to 'mansi/missing_summary.csv'")
+missing_summary.to_csv("data_processing/missing_summary.csv", index=False)
+print("✅ Missing value summary saved to 'data_processing/missing_summary.csv'")
 
 for col, col_type in final_column_types.items():
     if col_type.lower() == "numeric":

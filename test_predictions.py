@@ -6,7 +6,7 @@ import json
 model = joblib.load('final_model.pkl')
 
 # Load the encoded data that was used for training
-df_encoded = pd.read_csv('mansi/encoded_input.csv')
+df_encoded = pd.read_csv('data_processing/encoded_input.csv')
 
 print("=== PREDICTION ACCURACY TEST ===\n")
 

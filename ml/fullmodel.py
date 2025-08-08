@@ -34,11 +34,12 @@ import threading
 
 
 # GPT report function using Together.ai
-ANALYSIS_API_KEY = "a81e0b6137ae03b2c1f53be56b1e1a99bfbe474de314a18694de143cc145a378"
-TRAINING_API_KEY = "50f3cb01685c676283ee06f12ca9cfb7d393aa9714ab1bd55a4ce3d9f3c7f8cb"
-FINAL_REPORT_API_KEY = "19a0de6fd95ff0694858fd55981426968d49234b7500533368d09f3239d29504"
-FINAL_REPORT_API_KEY2 = "e63306f711963212a2eb0d121586107cd8391323f95a8133a7c3db5cf98b89a4"
-FINAL_REPORT_API_KEY3 = "c40daf6dc4975a203cb5b1803db7ebfd1ecf4cd75cd4a4b6b2a90c115ec66057"
+import os
+ANALYSIS_API_KEY = os.getenv("ANALYSIS_API_KEY", "your_analysis_api_key_here")
+TRAINING_API_KEY = os.getenv("TRAINING_API_KEY", "your_training_api_key_here")
+FINAL_REPORT_API_KEY = os.getenv("FINAL_REPORT_API_KEY", "your_final_report_api_key_here")
+FINAL_REPORT_API_KEY2 = os.getenv("FINAL_REPORT_API_KEY2", "your_final_report_api_key2_here")
+FINAL_REPORT_API_KEY3 = os.getenv("FINAL_REPORT_API_KEY3", "your_final_report_api_key3_here")
 
 def generate_epic_final_report_with_together(sections, output_path="epic_final_report.txt"):
     """
@@ -650,7 +651,7 @@ def sanitize_column_name(name):
 
 
 #====================================*Pattern Analysis*==============================================================
-def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_col=None, num_bins=50, use_log_scale=False, use_percentile_limit=True):
+def run_pattern_analysis_only(cleaned_csv_path="datasets/cleaned_input.csv", target_col=None, num_bins=50, use_log_scale=False, use_percentile_limit=True):
    
     # Create 'plots' folder if it doesn't exist
     if not os.path.exists("plots"):
@@ -678,9 +679,9 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
             st.info("Loaded user-confirmed column types from user_column_types.json")
     except FileNotFoundError:
         try:
-            with open("pihu/final_column_types.json", "r") as f:
+            with open("streamlit_app/final_column_types.json", "r") as f:
                 final_column_types = json.load(f)
-                st.info("Loaded column types from pihu/final_column_types.json")
+                st.info("Loaded column types from streamlit_app/final_column_types.json")
         except FileNotFoundError:
             try:
                 with open("final_column_types.json", "r") as f:
@@ -688,9 +689,9 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
                     st.info("Loaded column types from final_column_types.json")
             except FileNotFoundError:
                 try:
-                    with open("../mansi/final_column_types.json", "r") as f:
+                    with open("../data_processing/final_column_types.json", "r") as f:
                         final_column_types = json.load(f)
-                        st.info("Loaded column types from ../mansi/final_column_types.json")
+                        st.info("Loaded column types from ../data_processing/final_column_types.json")
                 except FileNotFoundError:
                     st.error("No data type configuration found. Please ensure column types are saved.")
                     return
@@ -1248,7 +1249,7 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
             pattern_descriptions = generate_pattern_graph_descriptions(df, target_col)
             
             # Save to graph_descriptions.txt
-            with open("mansi/graph_descriptions.txt", "w") as f:
+            with open("data_processing/graph_descriptions.txt", "w") as f:
                 f.write(pattern_descriptions)
             
             # Generate comprehensive business report
@@ -1301,7 +1302,7 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
             business_report = call_llama3_business_report(business_prompt)
             
             # Save to final_pattern_report.txt
-            with open("mansi/final_pattern_report.txt", "w") as f:
+            with open("data_processing/final_pattern_report.txt", "w") as f:
                 f.write(business_report)
             
             st.success("✅ Pattern analysis reports generated with current dataset column names!")
@@ -1312,7 +1313,7 @@ def run_pattern_analysis_only(cleaned_csv_path="data/cleaned_input.csv", target_
     # Continue with the rest of the analysis using the correctly filtered columns...
 
 
-def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_col=None):
+def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", target_col=None):
         # Define force_convert_exact_dtypes function for this scope
         def force_convert_exact_dtypes(df, column_types):
             """
@@ -1375,9 +1376,9 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
                 print("Loaded user-confirmed column types from user_column_types.json")
         except FileNotFoundError:
             try:
-                with open("pihu/final_column_types.json", "r") as f:
+                with open("streamlit_app/final_column_types.json", "r") as f:
                     final_column_types = json.load(f)
-                    print("Loaded column types from pihu/final_column_types.json")
+                    print("Loaded column types from streamlit_app/final_column_types.json")
             except FileNotFoundError:
                 try:
                     with open("final_column_types.json", "r") as f:
@@ -1385,9 +1386,9 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
                         print("Loaded column types from final_column_types.json")
                 except FileNotFoundError:
                     try:
-                        with open("../mansi/final_column_types.json", "r") as f:
+                        with open("../data_processing/final_column_types.json", "r") as f:
                             final_column_types = json.load(f)
-                            print("Loaded column types from ../mansi/final_column_types.json")
+                            print("Loaded column types from ../data_processing/final_column_types.json")
                     except FileNotFoundError:
                         print("No data type configuration found. Please ensure column types are saved.")
                         return
@@ -1404,7 +1405,7 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
             raise ValueError(f"❌ Target column '{target_col}' not found in the dataset.")
 
         # Save the target column config
-        with open("mansi/target_config.json", "w") as f:
+        with open("data_processing/target_config.json", "w") as f:
             json.dump({"target_column": target_col}, f)
 
         # --- STEP 1: Convert boolean-like columns to 0/1 ---
@@ -1440,16 +1441,16 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
             joblib.dump(le, os.path.join(encoders_dir, f"{col}_encoder.pkl"))
 
         # --- STEP 4: Save final encoded data ---
-        df.to_csv("mansi/encoded_input.csv", index=False)
+        df.to_csv("data_processing/encoded_input.csv", index=False)
         print("\n✅ Encoding complete. Output saved as 'encoded_input.csv'")
         print("🧠 LabelEncoders saved in 'encoders/' folder.")
 
         #========================train-test-split=======================================
-        df = pd.read_csv("mansi/encoded_input.csv")
+        df = pd.read_csv("data_processing/encoded_input.csv")
         df.columns = [sanitize_column_name(col) for col in df.columns]
 
         # Load target column from earlier saved config
-        with open("mansi/target_config.json", "r") as f:
+        with open("data_processing/target_config.json", "r") as f:
             target_col = json.load(f)["target_column"]
 
         if target_col not in df.columns:
@@ -1471,10 +1472,10 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
 
 
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
-        X_train.to_csv("mansi/X_train.csv", index=False)
-        X_test.to_csv("mansi/X_test.csv", index=False)
-        Y_train.to_csv("mansi/Y_train.csv", index=False)
-        Y_test.to_csv("mansi/Y_test.csv", index=False)
+        X_train.to_csv("data_processing/X_train.csv", index=False)
+        X_test.to_csv("data_processing/X_test.csv", index=False)
+        Y_train.to_csv("data_processing/Y_train.csv", index=False)
+        Y_test.to_csv("data_processing/Y_test.csv", index=False)
 
 
 
@@ -1820,10 +1821,10 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
             return best_rf, {"r2": r2, "mae": mae, "rmse": rmse}, {"r2": test_r2, "mae": test_mae, "rmse": test_rmse}
 
         # 🔽 🔽 🔽 FUNCTION CALL — DO NOT REMOVE 🔽 🔽 🔽
-        X_train = pd.read_csv("mansi/X_train.csv")
-        y_train = pd.read_csv("mansi/Y_train.csv").squeeze()
-        X_test = pd.read_csv("mansi/X_test.csv")
-        y_test = pd.read_csv("mansi/Y_test.csv").squeeze()
+        X_train = pd.read_csv("data_processing/X_train.csv")
+        y_train = pd.read_csv("data_processing/Y_train.csv").squeeze()
+        X_test = pd.read_csv("data_processing/X_test.csv")
+        y_test = pd.read_csv("data_processing/Y_test.csv").squeeze()
         X_train.columns = [sanitize_column_name(col) for col in X_train.columns]
         X_test.columns  = [sanitize_column_name(col) for col in X_test.columns]
         non_num_cols = [col for col in X_train.columns if not pd.api.types.is_numeric_dtype(X_train[col])]
@@ -1885,7 +1886,7 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
 
         print("\n🌲 Training Random Forest model...")
         rf_model, rf_train_metrics, rf_test_metrics = train_rf_model(X_train, y_train, X_test, y_test)
-        with open("mansi/target_config.json", "r") as f:
+        with open("data_processing/target_config.json", "r") as f:
             target_col = json.load(f)["target_column"]
 
         # ===== FIX FOR NaN VALUES BEFORE MODEL TRAINING =====
@@ -2445,14 +2446,14 @@ def run_model_training_only(cleaned_csv_path="data/cleaned_input.csv", target_co
                 ("SHAP Feature Importance", f"{used_model_type}_shap_importance.json"),
                 ("Sample Predictions", "residuals.csv"),
                 ("Auto Training Report", "auto_training_report.txt"),
-                ("Pattern Analysis", "mansi/final_pattern_report.txt"),
-                ("Chi-Square Test Summary", "mansi/chi_square_summary.txt"),
-                ("ANOVA Summary", "mansi/anova_summary.txt"),
-                ("Pearson/Spearman Correlation", "mansi/pearson_spearman_summary.txt"),
-                ("Cramér's V Summary", "mansi/cramers_v_summary.txt"),
-                ("Outlier Report", "mansi/outlier_report.txt"),
-                ("Time Trend Report", "mansi/time_trend_summary.txt"),
-                ("Graph Summaries", "mansi/graph_descriptions.txt"),
+                ("Pattern Analysis", "data_processing/final_pattern_report.txt"),
+                ("Chi-Square Test Summary", "data_processing/chi_square_summary.txt"),
+                ("ANOVA Summary", "data_processing/anova_summary.txt"),
+                ("Pearson/Spearman Correlation", "data_processing/pearson_spearman_summary.txt"),
+                ("Cramér's V Summary", "data_processing/cramers_v_summary.txt"),
+                ("Outlier Report", "data_processing/outlier_report.txt"),
+                ("Time Trend Report", "data_processing/time_trend_summary.txt"),
+                ("Graph Summaries", "data_processing/graph_descriptions.txt"),
             ]
 
             print("\n📊 Generating comprehensive final analysis report for business users...")
@@ -2526,7 +2527,7 @@ def run_terminal_predictions():
             "../user_column_types.json", # When running from pihu folder
             "final_column_types.json",   # Final types from cleaning
             "../final_column_types.json", # When running from pihu folder
-            "pihu/final_column_types.json",  # Alternative location
+            "streamlit_app/final_column_types.json",  # Alternative location
             "final_column_types.json",   # When running from pihu folder
         ]
         
@@ -2543,8 +2544,8 @@ def run_terminal_predictions():
     def find_target_column():
         """Find target column from your training system"""
         target_files = [
-            "mansi/target_config.json",
-            "../mansi/target_config.json",  # When running from pihu folder
+            "data_processing/target_config.json",
+            "../data_processing/target_config.json",  # When running from pihu folder
             "target_config.json",
             "../target_config.json",        # When running from pihu folder
         ]
@@ -2570,7 +2571,7 @@ def run_terminal_predictions():
             model_features = list(final_model.feature_names_in_)
         else:
             # Try to load from training files
-            for train_file in ["mansi/X_train.csv", "../mansi/X_train.csv", "X_train.csv", "../X_train.csv"]:
+            for train_file in ["data_processing/X_train.csv", "../data_processing/X_train.csv", "X_train.csv", "../X_train.csv"]:
                 if os.path.exists(train_file):
                     X_train = pd.read_csv(train_file)
                     model_features = list(X_train.columns)
@@ -2590,7 +2591,7 @@ def run_terminal_predictions():
         category_options = {}
         
         # Try multiple encoder directory locations
-        encoder_dirs = ["mansi/encoders", "../mansi/encoders", "encoders", "../encoders", "./encoders"]
+        encoder_dirs = ["data_processing/encoders", "../data_processing/encoders", "encoders", "../encoders", "./encoders"]
         encoders_dir = None
         
         for dir_path in encoder_dirs:

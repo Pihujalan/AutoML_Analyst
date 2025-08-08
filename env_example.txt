@@ -1,0 +1,36 @@
+# API Keys for AutoML Analyst
+# Replace these with your actual API keys
+
+# Together AI API Key
+TOGETHER_API_KEY=your_together_api_key_here
+
+# Analysis API Key
+ANALYSIS_API_KEY=your_analysis_api_key_here
+
+# Training API Key  
+TRAINING_API_KEY=your_training_api_key_here
+
+# Final Report API Keys
+FINAL_REPORT_API_KEY=your_final_report_api_key_here
+FINAL_REPORT_API_KEY2=your_final_report_api_key2_here
+FINAL_REPORT_API_KEY3=your_final_report_api_key3_here
+
+# Google Sheets API (if using Google Sheets integration)
+GOOGLE_SHEETS_CREDENTIALS_FILE=path_to_your_credentials.json
+
+# Database Configuration (if using database)
+DATABASE_URL=your_database_connection_string
+
+# Logging Configuration
+LOG_LEVEL=INFO
+LOG_FILE=automl_analyst.log
+
+# Model Configuration
+MODEL_TYPE=gbm
+MAX_ITERATIONS=100
+TIME_BUDGET=300
+
+# Data Processing Configuration
+RANDOM_STATE=42
+TEST_SIZE=0.2
+VALIDATION_SIZE=0.2 

@@ -22,10 +22,10 @@ os.makedirs("plots", exist_ok=True)
 
 # ------------------ Load Data ------------------
 print("📥 Loading train/test datasets...")
-X_train = pd.read_csv("mansi/X_train.csv")
-X_test = pd.read_csv("mansi/X_test.csv")
-y_train = pd.read_csv("mansi/y_train.csv").squeeze()
-y_test = pd.read_csv("mansi/y_test.csv").squeeze()
+X_train = pd.read_csv("data_processing/X_train.csv")
+X_test = pd.read_csv("data_processing/X_test.csv")
+y_train = pd.read_csv("data_processing/y_train.csv").squeeze()
+y_test = pd.read_csv("data_processing/y_test.csv").squeeze()
 
 # ---- STEP: Convert date columns to usable numeric features ----
 
@@ -46,7 +46,7 @@ for col in DATE_COLS:
             df.drop(columns=[col], inplace=True)
 
 
-with open("mansi/target_config.json", "r") as f:
+with open("data_processing/target_config.json", "r") as f:
     target_col = json.load(f)["target_column"]
 
 # ------------------ Encode ------------------
