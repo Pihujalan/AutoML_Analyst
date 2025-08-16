@@ -225,6 +225,10 @@ def integrate_mixtral_business_intelligence(together_api_key, analysis_results=N
 
 # Example usage
 if __name__ == "__main__":
+    # Load environment variables from .env file
+    from dotenv import load_dotenv
+    load_dotenv()
+    
     # Load your existing model metrics
     try:
         with open("final_model_summary.json", "r") as f:
@@ -232,9 +236,12 @@ if __name__ == "__main__":
     except:
         model_metrics = {"model_used": "unknown", "test_metrics": {}}
     
-    # Your Together AI API key
+    # Get Together AI API key from environment variables
     import os
-    TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY", "your_together_api_key_here")
+    TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
+    
+    if not TOGETHER_API_KEY:
+        raise ValueError("TOGETHER_API_KEY not found in environment variables. Please set it in your .env file.")
     
     # Generate business intelligence report
     report, filename = integrate_mixtral_business_intelligence(

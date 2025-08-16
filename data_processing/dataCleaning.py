@@ -63,8 +63,18 @@ def classify_name_column(series, sample_size=25, threshold=0.8):
 
 
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Get Groq API key from environment variables
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    raise ValueError("GROQ_API_KEY not found in environment variables. Please set it in your .env file.")
+
 client = OpenAI(
-    api_key=os.getenv("GROQ_API_KEY", "your_groq_api_key_here"),
+    api_key=GROQ_API_KEY,
     base_url="https://api.groq.com/openai/v1"
 )
 '''

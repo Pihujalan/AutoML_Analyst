@@ -35,11 +35,33 @@ import threading
 
 # GPT report function using Together.ai
 import os
-ANALYSIS_API_KEY = os.getenv("ANALYSIS_API_KEY", "your_analysis_api_key_here")
-TRAINING_API_KEY = os.getenv("TRAINING_API_KEY", "your_training_api_key_here")
-FINAL_REPORT_API_KEY = os.getenv("FINAL_REPORT_API_KEY", "your_final_report_api_key_here")
-FINAL_REPORT_API_KEY2 = os.getenv("FINAL_REPORT_API_KEY2", "your_final_report_api_key2_here")
-FINAL_REPORT_API_KEY3 = os.getenv("FINAL_REPORT_API_KEY3", "your_final_report_api_key3_here")
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Get API keys from environment variables
+ANALYSIS_API_KEY = os.getenv("ANALYSIS_API_KEY")
+TRAINING_API_KEY = os.getenv("TRAINING_API_KEY")
+FINAL_REPORT_API_KEY = os.getenv("FINAL_REPORT_API_KEY")
+FINAL_REPORT_API_KEY2 = os.getenv("FINAL_REPORT_API_KEY2")
+FINAL_REPORT_API_KEY3 = os.getenv("FINAL_REPORT_API_KEY3")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+# Validate that all required API keys are present
+required_keys = {
+    "ANALYSIS_API_KEY": ANALYSIS_API_KEY,
+    "TRAINING_API_KEY": TRAINING_API_KEY,
+    "FINAL_REPORT_API_KEY": FINAL_REPORT_API_KEY,
+    "FINAL_REPORT_API_KEY2": FINAL_REPORT_API_KEY2,
+    "FINAL_REPORT_API_KEY3": FINAL_REPORT_API_KEY3,
+    "GROQ_API_KEY": GROQ_API_KEY
+}
+
+missing_keys = [key for key, value in required_keys.items() if not value]
+
+if missing_keys:
+    raise ValueError(f"Missing required API keys: {', '.join(missing_keys)}. Please set them in your .env file.")
 
 def generate_epic_final_report_with_together(sections, output_path="epic_final_report.txt"):
     """
