@@ -1,9 +1,9 @@
 {
-  "age": "Numeric",
-  "sex": "Category",
-  "bmi": "Numeric",
-  "children": "Category",
-  "smoker": "Category",
-  "region": "Category",
-  "charges": "Numeric"
+  "Date": "Date",
+  "High": "Numeric",
+  "Low": "Numeric",
+  "Open": "Numeric",
+  "Close": "Numeric",
+  "Volume": "Numeric",
+  "Adj Close": "Numeric"
 }

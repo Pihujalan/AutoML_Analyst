@@ -1,8 +1,10 @@
-• 'age' ranges from 18.00 to 64.00, mean: 39.22, std dev: 14.04. The distribution appears approximately symmetric.
-• 'age' vs 'charges' shows a weak or no clear correlation (r = 0.30).
-• Top categories in 'sex' are: Male (50.5%), Female (49.5%).
-• 'bmi' ranges from 15.96 to 53.13, mean: 30.66, std dev: 6.10. The distribution appears approximately symmetric.
-• 'bmi' vs 'charges' shows a weak or no clear correlation (r = 0.20).
-• Top categories in 'children' are: 0 (42.9%), 1 (24.2%), 2 (18.0%).
-• Top categories in 'smoker' are: No (79.5%), Yes (20.5%).
-• Top categories in 'region' are: Southeast (27.2%), Southwest (24.3%), Northwest (24.2%).
+• 'High' ranges from 40.74 to 349.67, mean: 140.30, std dev: 89.00. The distribution appears approximately symmetric.
+• 'High' vs 'Adj Close' shows a strong positive correlation (r = 1.00).
+• 'Low' ranges from 39.72 to 342.20, mean: 137.48, std dev: 87.03. The distribution appears approximately symmetric.
+• 'Low' vs 'Adj Close' shows a strong positive correlation (r = 1.00).
+• 'Open' ranges from 40.34 to 344.62, mean: 138.93, std dev: 88.07. The distribution appears approximately symmetric.
+• 'Open' vs 'Adj Close' shows a strong positive correlation (r = 1.00).
+• 'Close' ranges from 40.29 to 343.11, mean: 138.97, std dev: 88.06. The distribution appears approximately symmetric.
+• 'Close' vs 'Adj Close' shows a strong positive correlation (r = 1.00).
+• 'Volume' ranges from 7425600.00 to 169164000.00, mean: 30096868.99, std dev: 13978621.33. The distribution appears right-skewed.
+• 'Volume' vs 'Adj Close' shows a weak or no clear correlation (r = -0.04).

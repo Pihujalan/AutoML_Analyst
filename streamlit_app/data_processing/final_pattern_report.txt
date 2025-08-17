@@ -1,0 +1,81 @@
+**Business Report: Stock Market Analysis**
+
+**1. Executive Summary**
+
+This report presents a comprehensive analysis of a stock market dataset, comprising 1925 observations and 7 variables, including the target column 'Adj Close'. The analysis reveals strong positive correlations between 'High', 'Low', 'Open', and 'Close' with 'Adj Close', indicating a high degree of association between these variables. The 'Volume' variable shows a weak correlation with 'Adj Close'. The report highlights key insights, risks, and recommendations for stakeholders to inform their investment decisions.
+
+**2. Data Quality & Business Risk Assessment**
+
+The dataset appears to be of good quality, with no missing values or outliers detected. However, the right-skewed distribution of 'Volume' may indicate that the data is not normally distributed, which could impact the accuracy of certain statistical models.
+
+Business Risk Assessment:
+
+* The strong correlations between 'High', 'Low', 'Open', and 'Close' with 'Adj Close' suggest that the stock's price is highly influenced by these variables, which could lead to volatility in the market.
+* The weak correlation between 'Volume' and 'Adj Close' may indicate that trading volume is not a significant factor in determining the stock's price, which could be a risk for investors relying on volume-based strategies.
+
+**3. Insights from Visualizations & Stats**
+
+**Table 1: Summary Statistics**
+
+| Column | Min | Max | Mean | Std Dev |
+| --- | --- | --- | --- | --- |
+| High | 40.74 | 349.67 | 140.30 | 89.00 |
+| Low | 39.72 | 342.20 | 137.48 | 87.03 |
+| Open | 40.34 | 344.62 | 138.93 | 88.07 |
+| Close | 40.29 | 343.11 | 138.97 | 88.06 |
+| Volume | 7425600.00 | 169164000.00 | 30096868.99 | 13978621.33 |
+| Adj Close | 40.29 | 343.11 | 138.97 | 88.06 |
+
+The summary statistics indicate that the distributions of 'High', 'Low', 'Open', and 'Close' are approximately symmetric, while 'Volume' is right-skewed.
+
+**4. Correlations & Associations**
+
+**Table 2: Correlation Matrix**
+
+|  | High | Low | Open | Close | Volume | Adj Close |
+| --- | --- | --- | --- | --- | --- | --- |
+| High | 1.00 | 0.99 | 0.99 | 0.99 | -0.04 | 1.00 |
+| Low | 0.99 | 1.00 | 0.99 | 0.99 | -0.04 | 1.00 |
+| Open | 0.99 | 0.99 | 1.00 | 0.99 | -0.04 | 1.00 |
+| Close | 0.99 | 0.99 | 0.99 | 1.00 | -0.04 | 1.00 |
+| Volume | -0.04 | -0.04 | -0.04 | -0.04 | 1.00 | -0.04 |
+| Adj Close | 1.00 | 1.00 | 1.00 | 1.00 | -0.04 | 1.00 |
+
+The correlation matrix reveals strong positive correlations between 'High', 'Low', 'Open', and 'Close' with 'Adj Close', indicating a high degree of association between these variables.
+
+**5. Statistical Test Results**
+
+No statistical tests were performed in this analysis, as the focus was on exploratory data analysis and visualization.
+
+**6. Segment-Level Observations**
+
+No segment-level observations were made, as the dataset does not contain any categorical variables.
+
+**7. Time Trends**
+
+**Figure 1: Time Series Plot of Adj Close**
+
+The time series plot of 'Adj Close' reveals a general upward trend, with some fluctuations over time.
+
+**8. Business Risks & Data Limitations**
+
+* The strong correlations between 'High', 'Low', 'Open', and 'Close' with 'Adj Close' may indicate a high degree of multicollinearity, which could impact the accuracy of certain statistical models.
+* The right-skewed distribution of 'Volume' may indicate that the data is not normally distributed, which could impact the accuracy of certain statistical models.
+* The dataset only contains 7 variables, which may not capture all the relevant factors influencing the stock's price.
+
+**9. Strategic Recommendations**
+
+* Investors should closely monitor the 'High', 'Low', 'Open', and 'Close' prices, as they are highly correlated with the 'Adj Close' price.
+* Trading volume may not be a significant factor in determining the stock's price, so investors should not rely solely on volume-based strategies.
+* Further analysis should be conducted to identify other relevant factors influencing the stock's price, such as economic indicators, news events, and technical indicators.
+
+**10. Visual Dashboards & Monitoring Suggestions**
+
+A dashboard with the following visualizations is recommended:
+
+* Time series plot of 'Adj Close'
+* Scatter plots of 'High', 'Low', 'Open', and 'Close' vs 'Adj Close'
+* Histogram of 'Volume'
+* Correlation matrix heatmap
+
+These visualizations will enable stakeholders to monitor the stock's price and its relationships with other variables, facilitating informed investment decisions.
