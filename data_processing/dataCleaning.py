@@ -124,7 +124,7 @@ def verify_with_gpt(col_name, sample_values, local_guess):
         #response = rotator.chat_completion(
             #model="mistralai/mistral-7b-instruct:free",
         response = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.1-8b-instant",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=20,
             temperature=0.2,
