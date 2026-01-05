@@ -1,8 +1,17 @@
 import pandas as pd
+import os
 from sklearn.model_selection import train_test_split
 
 # ---------- Load CSV ----------
-df = pd.read_csv("encoded_input.csv")
+# Try new location first, then fallback to old
+if os.path.exists("outputs/data/encoded_input.csv"):
+    df = pd.read_csv("outputs/data/encoded_input.csv")
+elif os.path.exists("data_processing/encoded_input.csv"):
+    df = pd.read_csv("data_processing/encoded_input.csv")
+elif os.path.exists("encoded_input.csv"):
+    df = pd.read_csv("encoded_input.csv")
+else:
+    raise FileNotFoundError("encoded_input.csv not found in any expected location")
 print("Available columns in the dataset: ")
 print(df.columns.tolist())
 
@@ -37,10 +46,11 @@ def smart_train_test_split(X, Y, test_size=0.2, random_state=42):
 X_train, X_test, Y_train, Y_test = smart_train_test_split(X, Y)
 
 # ---------- Save CSVs (preserve original format) ----------
-X_train.to_csv("X_train.csv", index=False)
-X_test.to_csv("X_test.csv", index=False)
-Y_train.to_csv("Y_train.csv", index=False)
-Y_test.to_csv("Y_test.csv", index=False)
+os.makedirs("outputs/data", exist_ok=True)
+X_train.to_csv("outputs/data/X_train.csv", index=False)
+X_test.to_csv("outputs/data/X_test.csv", index=False)
+Y_train.to_csv("outputs/data/Y_train.csv", index=False)
+Y_test.to_csv("outputs/data/Y_test.csv", index=False)
 
 print("\n✅ Data split completed and saved:")
 print(f"   - X_train: {X_train.shape}")

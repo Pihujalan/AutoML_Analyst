@@ -17,15 +17,18 @@ from tabulate import tabulate
 warnings.simplefilter(action='ignore', category=FutureWarning)
 sns.set(style="whitegrid")
 
-# Ensure plot folder exists
-os.makedirs("plots", exist_ok=True)
+# Ensure output directories exist
+os.makedirs("outputs/plots", exist_ok=True)
+os.makedirs("outputs/models", exist_ok=True)
+os.makedirs("outputs/metrics", exist_ok=True)
+os.makedirs("outputs/data", exist_ok=True)
 
 # ------------------ Load Data ------------------
 print("📥 Loading train/test datasets...")
-X_train = pd.read_csv("data_processing/X_train.csv")
-X_test = pd.read_csv("data_processing/X_test.csv")
-y_train = pd.read_csv("data_processing/y_train.csv").squeeze()
-y_test = pd.read_csv("data_processing/y_test.csv").squeeze()
+X_train = pd.read_csv("outputs/data/X_train.csv")
+X_test = pd.read_csv("outputs/data/X_test.csv")
+y_train = pd.read_csv("outputs/data/y_train.csv").squeeze()
+y_test = pd.read_csv("outputs/data/y_test.csv").squeeze()
 
 # ---- STEP: Convert date columns to usable numeric features ----
 
@@ -46,7 +49,7 @@ for col in DATE_COLS:
             df.drop(columns=[col], inplace=True)
 
 
-with open("data_processing/target_config.json", "r") as f:
+with open("outputs/data/target_config.json", "r") as f:
     target_col = json.load(f)["target_column"]
 
 # ------------------ Encode ------------------
@@ -56,7 +59,7 @@ te = TargetEncoder()
 X_train[cat_cols] = te.fit_transform(X_train[cat_cols], y_train)
 X_test[cat_cols] = te.transform(X_test[cat_cols])
 
-joblib.dump(te, "target_encoder.pkl")
+joblib.dump(te, "outputs/encoders/target_encoder.pkl")
 
 # ------------------ Baseline Model ------------------
 print("🚀 Training baseline model...")
@@ -102,7 +105,7 @@ mse = mean_squared_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 print(f"MAE: {mae:.2f} | MSE: {mse:.2f} | R²: {r2:.2f}")
 
-joblib.dump(best_model, "trained_gbm_model_tuned.pkl")
+joblib.dump(best_model, "outputs/models/trained_gbm_model_tuned.pkl")
 
 # ------------------ Residual & Scatter Plot ------------------
 print("\n📈 Saving residual and scatter plots...")
@@ -114,7 +117,7 @@ plt.title("Residual Distribution")
 plt.xlabel("Residuals")
 plt.ylabel("Frequency")
 plt.tight_layout()
-plt.savefig("plots/residual_distribution.png")
+plt.savefig("outputs/plots/residual_distribution.png")
 plt.close()
 
 plt.figure(figsize=(10, 5))
@@ -123,7 +126,7 @@ plt.title("Actual vs Predicted")
 plt.xlabel("Actual")
 plt.ylabel("Predicted")
 plt.tight_layout()
-plt.savefig("plots/actual_vs_predicted.png")
+plt.savefig("outputs/plots/actual_vs_predicted.png")
 plt.close()
 
 # ------------------ Feature Importance ------------------
@@ -136,7 +139,7 @@ plt.figure(figsize=(10, 5))
 sns.barplot(data=importance_df, x="Importance", y="Feature", palette="viridis")
 plt.title("Feature Importance")
 plt.tight_layout()
-plt.savefig("plots/feature_importance.png")
+plt.savefig("outputs/plots/feature_importance.png")
 plt.close()
 
 # ------------------ Segment-wise Analysis ------------------
@@ -173,7 +176,7 @@ for col in segment_columns:
     plt.title(f"Segment-wise MAE for {col}")
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig(f"plots/segment_{col}_mae.png")
+    plt.savefig(f"outputs/plots/segment_{col}_mae.png")
     plt.close()
 
 
@@ -199,15 +202,15 @@ if r2 < 0.75 or (gap > 0.15 and r2 < 0.75):
     used_model_type = "flaml_fallback"
 
     print("\n✅ Fallback model trained and selected.")
-    print(f"\FLAML Performance:\nMAE: {mae_fallback:.2f} | MSE: {mse_fallback:.2f} | R²: {r2_fallback:.2f}")
+    print(f"\nFLAML Performance:\nMAE: {mae_fallback:.2f} | MSE: {mse_fallback:.2f} | R²: {r2_fallback:.2f}")
 else:
     final_model = best_model
     used_model_type = "gbm"
     print("✅ GBM model performed well. No fallback needed.")
 
 # ------------------ Save Final Model ------------------
-joblib.dump(final_model, "final_model.pkl")
-with open("model_type.txt", "w") as f:
+joblib.dump(final_model, "outputs/models/final_model.pkl")
+with open("outputs/data/model_type.txt", "w") as f:
     f.write(used_model_type)
 
 

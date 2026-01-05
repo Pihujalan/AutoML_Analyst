@@ -1,36 +1,34 @@
-# API Keys for AutoML Analyst
-# Replace these with your actual API keys
+# =============================================================================
+# API KEYS CONFIGURATION
+# =============================================================================
+# IMPORTANT: Copy this file to .env and replace placeholder values with your actual API keys
+# Never commit the .env file to version control
 
-# Together AI API Key
+# Together AI API Key (for AI model integration and inference)
+# Get your key at: https://api.together.xyz/settings/api-keys
+# Sign up at: https://www.together.ai/
 TOGETHER_API_KEY=your_together_api_key_here
 
-# Analysis API Key
+# Groq API Key (for fast AI inference)
+# Get your key at: https://console.groq.com/keys
+# Sign up at: https://groq.com/
+GROQ_API_KEY=your_groq_api_key_here
+
+# Analysis API Key (for data analysis modules)
 ANALYSIS_API_KEY=your_analysis_api_key_here
 
-# Training API Key  
+# Training API Key (for model training modules)
 TRAINING_API_KEY=your_training_api_key_here
 
-# Final Report API Keys
+# Final Report Generation API Keys (multiple keys for load balancing and redundancy)
 FINAL_REPORT_API_KEY=your_final_report_api_key_here
-FINAL_REPORT_API_KEY2=your_final_report_api_key2_here
-FINAL_REPORT_API_KEY3=your_final_report_api_key3_here
+FINAL_REPORT_API_KEY2=your_final_report_api_key_2_here
+FINAL_REPORT_API_KEY3=your_final_report_api_key_3_here
 
-# Google Sheets API (if using Google Sheets integration)
-GOOGLE_SHEETS_CREDENTIALS_FILE=path_to_your_credentials.json
-
-# Database Configuration (if using database)
-DATABASE_URL=your_database_connection_string
-
-# Logging Configuration
-LOG_LEVEL=INFO
-LOG_FILE=automl_analyst.log
-
-# Model Configuration
-MODEL_TYPE=gbm
-MAX_ITERATIONS=100
-TIME_BUDGET=300
-
-# Data Processing Configuration
-RANDOM_STATE=42
-TEST_SIZE=0.2
-VALIDATION_SIZE=0.2 
+# =============================================================================
+# SETUP INSTRUCTIONS
+# =============================================================================
+# 1. Copy this file: cp env_example.txt .env (Linux/Mac) or copy env_example.txt .env (Windows)
+# 2. Replace all placeholder values with your actual API keys
+# 3. Never share your .env file or commit it to version control
+# 4. The .env file is already included in .gitignore 

@@ -193,12 +193,15 @@ Please analyze this data and create a comprehensive business intelligence report
     
     def save_report(self, report_content, filename="business_intelligence_report.md"):
         """Save the generated report to a file"""
+        import os
+        os.makedirs("outputs/reports", exist_ok=True)
+        report_path = os.path.join("outputs/reports", filename)
         
-        with open(filename, 'w', encoding='utf-8') as f:
+        with open(report_path, 'w', encoding='utf-8') as f:
             f.write(report_content)
         
-        print(f"✅ Business Intelligence Report saved to: {filename}")
-        return filename
+        print(f"✅ Business Intelligence Report saved to: {report_path}")
+        return report_path
 
 # Integration function to be called from your existing pipeline
 def integrate_mixtral_business_intelligence(together_api_key, analysis_results=None, model_metrics=None):
@@ -231,8 +234,15 @@ if __name__ == "__main__":
     
     # Load your existing model metrics
     try:
-        with open("final_model_summary.json", "r") as f:
-            model_metrics = json.load(f)
+        # Try new location first, then fallback
+        if os.path.exists("outputs/metrics/final_model_summary.json"):
+            with open("outputs/metrics/final_model_summary.json", "r") as f:
+                model_metrics = json.load(f)
+        elif os.path.exists("final_model_summary.json"):
+            with open("final_model_summary.json", "r") as f:
+                model_metrics = json.load(f)
+        else:
+            model_metrics = {"model_used": "unknown", "test_metrics": {}}
     except:
         model_metrics = {"model_used": "unknown", "test_metrics": {}}
     

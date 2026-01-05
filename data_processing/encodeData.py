@@ -8,8 +8,9 @@ from sklearn.preprocessing import LabelEncoder
 import joblib
 import os
 
-# Ensure encoders folder exists
-os.makedirs("encoders", exist_ok=True)
+# Ensure outputs directory structure exists
+os.makedirs("outputs/encoders", exist_ok=True)
+os.makedirs("outputs/data", exist_ok=True)
 
 # Load dataset
 #df = pd.read_csv("cleaned_input.csv")
@@ -26,7 +27,8 @@ if target_col not in df.columns:
     exit()
 
 # Save the target column config
-with open("target_config.json", "w") as f:
+os.makedirs("outputs/data", exist_ok=True)
+with open("outputs/data/target_config.json", "w") as f:
     json.dump({"target_column": target_col}, f)
 
 # --- STEP 1: Convert boolean-like columns to 0/1 ---
@@ -56,14 +58,14 @@ for col in cat_cols:
     df[col] = df[col].astype(str).str.lower().str.strip()  # Clean text
     le = LabelEncoder()
     df[col] = le.fit_transform(df[col])
-    # Define correct output folder relative to current working directory
-    cwd = os.getcwd()
-    encoders_dir = os.path.join(cwd, "mansi", "encoders")
+    # Save encoders to outputs/encoders directory
+    encoders_dir = "outputs/encoders"
     os.makedirs(encoders_dir, exist_ok=True)
 
     # Save encoder to correct folder
     joblib.dump(le, os.path.join(encoders_dir, f"{col}_encoder.pkl"))
 # --- STEP 4: Save final encoded data ---
-df.to_csv("encoded_input.csv", index=False)
+os.makedirs("outputs/data", exist_ok=True)
+df.to_csv("outputs/data/encoded_input.csv", index=False)
 print("\n✅ Encoding complete. Output saved as 'encoded_input.csv'")
 print("🧠 LabelEncoders saved in 'encoders/' folder.")

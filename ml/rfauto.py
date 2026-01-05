@@ -81,7 +81,8 @@ def train_rf_model(X_train, y_train, X_test, y_test):
     best_rf = search.best_estimator_
  
     train_preds = best_rf.predict(X_train)
-    joblib.dump(best_rf, "best_rf_model.pkl")
+    os.makedirs("outputs/models", exist_ok=True)
+    joblib.dump(best_rf, "outputs/models/best_rf_model.pkl")
 
     plt.figure(figsize=(6, 4))
     sns.scatterplot(x=y_train, y=train_preds, alpha=0.5)
@@ -117,7 +118,8 @@ def train_rf_model(X_train, y_train, X_test, y_test):
     print(f"   - MAE:       {round(mae, 4)}")
     print(f"   - RMSE:      {round(rmse, 4)}")
 
-    with open("best_rf_metrics.json", "w") as f:
+    os.makedirs("outputs/metrics", exist_ok=True)
+    with open("outputs/metrics/best_rf_metrics.json", "w") as f:
        json.dump({
         "r2": round(r2, 4),
         "mae": round(mae, 4),
@@ -148,7 +150,7 @@ def train_rf_model(X_train, y_train, X_test, y_test):
     ]
 
     # Create folder for plots if it doesn't exist
-    os.makedirs("plots/segments_rf", exist_ok=True)
+    os.makedirs("outputs/plots/segments_rf", exist_ok=True)
 
     for col in segment_columns:
         if col not in df_full.columns:
@@ -176,7 +178,7 @@ def train_rf_model(X_train, y_train, X_test, y_test):
         plt.title(f"Segment-wise MAE for {col} (RF Model)")
         plt.xticks(rotation=45, ha='right')
         plt.tight_layout()
-        plt.savefig(f"plots/segments_rf/segment_{col}_mae.png")
+        plt.savefig(f"outputs/plots/segments_rf/segment_{col}_mae.png")
         plt.close()
 #=========================end of segment analysis====================================================
         # ------------------ Feature Importance ------------------
@@ -190,12 +192,15 @@ def train_rf_model(X_train, y_train, X_test, y_test):
         plt.title("Feature Importance")
         plt.tight_layout()
         os.makedirs("plots", exist_ok=True)
-        plt.savefig("plots/feature_importance_rf.png")
+        os.makedirs("outputs/plots", exist_ok=True)
+        plt.savefig("outputs/plots/feature_importance_rf.png")
         plt.close()
 #--------------------end of feture analysis-------------------------------------------------------
-    joblib.dump(best_rf, "best_rf_model.pkl")
+    os.makedirs("outputs/models", exist_ok=True)
+    joblib.dump(best_rf, "outputs/models/best_rf_model.pkl")
 
-    with open("best_rf_metrics.json", "w") as f:
+    os.makedirs("outputs/metrics", exist_ok=True)
+    with open("outputs/metrics/best_rf_metrics.json", "w") as f:
         json.dump({
             "r2": round(r2, 4),
             "mae": round(mae, 4),
@@ -231,7 +236,8 @@ def train_rf_model(X_train, y_train, X_test, y_test):
     plt.title("Test: Actual vs Predicted")
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig("plots/test_actual_vs_pred_rf.png")
+    os.makedirs("outputs/plots", exist_ok=True)
+    plt.savefig("outputs/plots/test_actual_vs_pred_rf.png")
     plt.close()
 
     test_residuals = y_test - test_preds
@@ -243,7 +249,8 @@ def train_rf_model(X_train, y_train, X_test, y_test):
     plt.title("Test: Residual Plot")
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig("plots/test_residual_rf.png")
+    os.makedirs("outputs/plots", exist_ok=True)
+    plt.savefig("outputs/plots/test_residual_rf.png")
     plt.close()
 
     print("🔍 Starting SHAP...")
@@ -283,9 +290,10 @@ def train_rf_model(X_train, y_train, X_test, y_test):
                 print(tabulate(shap_df.head(5), headers='keys', tablefmt='fancy_grid'))
             # ✅ Save top 5 SHAP features to JSON
             top_5_shap = shap_df.head(5).set_index("Feature")["Mean |SHAP|"].to_dict()
-            with open("rf_shap_importance.json", "w") as f:
+            os.makedirs("outputs/metrics", exist_ok=True)
+            with open("outputs/metrics/rf_shap_importance.json", "w") as f:
                 json.dump(top_5_shap, f, indent=4)
-            print("\n💾 Saved top 5 SHAP features to rf_shap_importance.json")
+            print("\n💾 Saved top 5 SHAP features to outputs/metrics/rf_shap_importance.json")
         except Exception as e:
             print("⚠️ SHAP analysis failed:", str(e))
 
@@ -392,14 +400,16 @@ def train_flaml_fallback(X_train, y_train, X_test, y_test, rf_test_metrics):
         "rmse": round(mean_squared_error(y_test, test_preds, squared=False), 4)
     }
 
-    joblib.dump(automl, "fallback_flaml_model.pkl")
+    os.makedirs("outputs/models", exist_ok=True)
+    joblib.dump(automl, "outputs/models/fallback_flaml_model.pkl")
 
     print("\n📉 Fallback Model Performance:")
     print(f"   - Test R²:  {test_metrics['r2']}")
     print(f"   - MAE:      {test_metrics['mae']}")
     print(f"   - RMSE:     {test_metrics['rmse']}")
 
-    with open("fallback_flaml_metrics.json", "w") as f:
+    os.makedirs("outputs/metrics", exist_ok=True)
+    with open("outputs/metrics/fallback_flaml_metrics.json", "w") as f:
         json.dump({
             "train_metrics": train_metrics,
             "test_metrics": test_metrics,

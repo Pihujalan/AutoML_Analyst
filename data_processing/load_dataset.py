@@ -34,24 +34,17 @@ def load_dataset(source_type, path_or_url, sheet_name=None):
         return None
           
 if __name__ == "__main__":
-     # df=load_dataset('csv','Employee_dataset.csv')
-     # print(df.head())
-
-     #df = load_dataset(
-    #source_type='gsheet',
-    #path_or_url='https://docs.google.com/spreadsheets/d/1dfO5hJJ8tMfExlX0T0IAUE5pjccdxhMbVWMRrbdeMKY',
-    #sheet_name='Employee_dataset'
-#)
-    df = load_dataset(
-    source_type='gsheet',
-    path_or_url='https://docs.google.com/spreadsheets/d/this_is_wrong',
-    sheet_name='Employee_dataset'
-)
-    if df is not None:
-       print (df.head())
-
-    else:
-       print("Skipping dataframe operations since loading failed.")
+    # Example usage:
+    # df = load_dataset('csv', 'Employee_dataset.csv')
+    # print(df.head())
+    
+    # For Google Sheets:
+    # df = load_dataset(
+    #     source_type='gsheet',
+    #     path_or_url='YOUR_GOOGLE_SHEET_URL',
+    #     sheet_name='Sheet1'
+    # )
+    pass
        
 
 

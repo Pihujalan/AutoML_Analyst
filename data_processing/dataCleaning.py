@@ -329,6 +329,10 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
     
     # --- Save user choices if provided ---
     if user_types_dict:
+        os.makedirs("outputs/data", exist_ok=True)
+        with open("outputs/data/user_column_types.json", "w") as f:
+            json.dump(user_types_dict, f, indent=2)
+        # Also save to root for backward compatibility
         with open("user_column_types.json", "w") as f:
             json.dump(user_types_dict, f, indent=2)
     
@@ -478,6 +482,10 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
                 final_types[col] = "Numeric"
     
     # --- Save final types (AFTER enhanced detection) ---
+    os.makedirs("outputs/data", exist_ok=True)
+    with open("outputs/data/final_column_types.json", "w") as f:
+        json.dump(final_types, f, indent=2)
+    # Also save to root for backward compatibility
     with open("final_column_types.json", "w") as f:
         json.dump(final_types, f, indent=2)
     
@@ -509,6 +517,10 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
             if col in final_types:
                 del final_types[col]
         # Save updated types
+        os.makedirs("outputs/data", exist_ok=True)
+        with open("outputs/data/final_column_types.json", "w") as f:
+            json.dump(final_types, f, indent=2)
+        # Also save to root for backward compatibility
         with open("final_column_types.json", "w") as f:
             json.dump(final_types, f, indent=2)
     else:
@@ -574,12 +586,9 @@ def clean_data_with_logs(df, log_path="logs/cleaning_log.txt", st_container=None
     if cols_to_force_drop:
         print(f"Force-dropping these ID/name columns: {cols_to_force_drop}")
         df = df.drop(columns=cols_to_force_drop)
-    df.to_csv("cleaned_input.csv", index=False)
-    print("✅ Cleaned data saved to 'cleaned_input.csv'")
-    
-    # --- Save cleaned data ---
-    os.makedirs("data", exist_ok=True)
-    df.to_csv("datasets/cleaned_input.csv", index=False)
-    print("✅ Cleaned data saved to 'datasets/cleaned_input.csv'")
+    # Save cleaned data to outputs directory
+    os.makedirs("outputs/data", exist_ok=True)
+    df.to_csv("outputs/data/cleaned_input.csv", index=False)
+    print("✅ Cleaned data saved to 'outputs/data/cleaned_input.csv'")
     
     return df, []

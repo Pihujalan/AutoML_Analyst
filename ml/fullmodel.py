@@ -63,7 +63,7 @@ missing_keys = [key for key, value in required_keys.items() if not value]
 if missing_keys:
     raise ValueError(f"Missing required API keys: {', '.join(missing_keys)}. Please set them in your .env file.")
 
-def generate_epic_final_report_with_together(sections, output_path="epic_final_report.txt"):
+def generate_epic_final_report_with_together(sections, output_path="outputs/reports/epic_final_report.txt"):
     """
     🚀 MULTI-API DATA ANALYST SYSTEM: Uses all 3 API keys for comprehensive, reliable reports
     Each API specializes in different aspects and works together
@@ -685,7 +685,7 @@ def run_pattern_analysis_only(cleaned_csv_path="datasets/cleaned_input.csv", tar
         return
     
     # ✅ Clear old plots before creating new ones
-    for old_plot in glob.glob("plots/*.png"):
+    for old_plot in glob.glob("outputs/plots/*.png"):
         os.remove(old_plot)
 
     EXCLUDE_COLS = {'Unnamed: 0', 'id', 'ID', 'index'}
@@ -693,30 +693,27 @@ def run_pattern_analysis_only(cleaned_csv_path="datasets/cleaned_input.csv", tar
     # Load dataset
     df = pd.read_csv(cleaned_csv_path)
 
-    # CRITICAL FIX: Always load and use the latest user-confirmed types, prioritizing user_column_types.json
+    # CRITICAL FIX: Always load and use the latest user-confirmed types, checking new location first
     final_column_types = None
-    try:
-        with open("user_column_types.json", "r") as f:
-            final_column_types = json.load(f)
-            st.info("Loaded user-confirmed column types from user_column_types.json")
-    except FileNotFoundError:
+    json_paths = [
+        "outputs/data/user_column_types.json",
+        "user_column_types.json",
+        "outputs/data/final_column_types.json",
+        "final_column_types.json",
+        "streamlit_app/final_column_types.json",
+        "../data_processing/final_column_types.json"
+    ]
+    for json_path in json_paths:
         try:
-            with open("streamlit_app/final_column_types.json", "r") as f:
+            with open(json_path, "r") as f:
                 final_column_types = json.load(f)
-                st.info("Loaded column types from streamlit_app/final_column_types.json")
+                st.info(f"Loaded column types from {json_path}")
+                break
         except FileNotFoundError:
-            try:
-                with open("final_column_types.json", "r") as f:
-                    final_column_types = json.load(f)
-                    st.info("Loaded column types from final_column_types.json")
-            except FileNotFoundError:
-                try:
-                    with open("../data_processing/final_column_types.json", "r") as f:
-                        final_column_types = json.load(f)
-                        st.info("Loaded column types from ../data_processing/final_column_types.json")
-                except FileNotFoundError:
-                    st.error("No data type configuration found. Please ensure column types are saved.")
-                    return
+            continue
+    if final_column_types is None:
+        st.error("No data type configuration found. Please ensure column types are saved.")
+        return
 
     if not final_column_types:
         st.error("No valid column types configuration found.")
@@ -1271,7 +1268,8 @@ def run_pattern_analysis_only(cleaned_csv_path="datasets/cleaned_input.csv", tar
             pattern_descriptions = generate_pattern_graph_descriptions(df, target_col)
             
             # Save to graph_descriptions.txt
-            with open("data_processing/graph_descriptions.txt", "w") as f:
+            os.makedirs("outputs/reports", exist_ok=True)
+            with open("outputs/reports/graph_descriptions.txt", "w") as f:
                 f.write(pattern_descriptions)
             
             # Generate comprehensive business report
@@ -1324,7 +1322,8 @@ def run_pattern_analysis_only(cleaned_csv_path="datasets/cleaned_input.csv", tar
             business_report = call_llama3_business_report(business_prompt)
             
             # Save to final_pattern_report.txt
-            with open("data_processing/final_pattern_report.txt", "w") as f:
+            os.makedirs("outputs/reports", exist_ok=True)
+            with open("outputs/reports/final_pattern_report.txt", "w") as f:
                 f.write(business_report)
             
             st.success("✅ Pattern analysis reports generated with current dataset column names!")
@@ -1390,30 +1389,27 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
         df = pd.read_csv(cleaned_csv_path)
         print("Original shape:", df.shape)
 
-        # CRITICAL FIX: Always load and use the latest user-confirmed types, prioritizing user_column_types.json
+        # CRITICAL FIX: Always load and use the latest user-confirmed types, checking new location first
         final_column_types = None
-        try:
-            with open("user_column_types.json", "r") as f:
-                final_column_types = json.load(f)
-                print("Loaded user-confirmed column types from user_column_types.json")
-        except FileNotFoundError:
+        json_paths = [
+            "outputs/data/user_column_types.json",
+            "user_column_types.json",
+            "outputs/data/final_column_types.json",
+            "final_column_types.json",
+            "streamlit_app/final_column_types.json",
+            "../data_processing/final_column_types.json"
+        ]
+        for json_path in json_paths:
             try:
-                with open("streamlit_app/final_column_types.json", "r") as f:
+                with open(json_path, "r") as f:
                     final_column_types = json.load(f)
-                    print("Loaded column types from streamlit_app/final_column_types.json")
+                    print(f"Loaded column types from {json_path}")
+                    break
             except FileNotFoundError:
-                try:
-                    with open("final_column_types.json", "r") as f:
-                        final_column_types = json.load(f)
-                        print("Loaded column types from final_column_types.json")
-                except FileNotFoundError:
-                    try:
-                        with open("../data_processing/final_column_types.json", "r") as f:
-                            final_column_types = json.load(f)
-                            print("Loaded column types from ../data_processing/final_column_types.json")
-                    except FileNotFoundError:
-                        print("No data type configuration found. Please ensure column types are saved.")
-                        return
+                continue
+        if final_column_types is None:
+            print("⚠️ No data type configuration found. Using default inference.")
+            return
 
         if not final_column_types:
             print("No valid column types configuration found.")
@@ -1457,13 +1453,14 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
             df[col] = df[col].astype(str).str.lower().str.strip()  # Clean text
             le = LabelEncoder()
             df[col] = le.fit_transform(df[col])
-            cwd = os.getcwd()
-            encoders_dir = os.path.join(cwd, "mansi", "encoders")
+            # Save encoders to outputs/encoders directory
+            encoders_dir = "outputs/encoders"
             os.makedirs(encoders_dir, exist_ok=True)
             joblib.dump(le, os.path.join(encoders_dir, f"{col}_encoder.pkl"))
 
         # --- STEP 4: Save final encoded data ---
-        df.to_csv("data_processing/encoded_input.csv", index=False)
+        os.makedirs("outputs/data", exist_ok=True)
+        df.to_csv("outputs/data/encoded_input.csv", index=False)
         print("\n✅ Encoding complete. Output saved as 'encoded_input.csv'")
         print("🧠 LabelEncoders saved in 'encoders/' folder.")
 
@@ -1552,7 +1549,8 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
                     df[f"{col}_day"] = df[col].dt.day
                     df[f"{col}_dow"] = df[col].dt.dayofweek
                     df.drop(columns=[col], inplace=True)
-        def save_residuals_report(y_true, y_pred, filename="residuals.csv"):
+        def save_residuals_report(y_true, y_pred, filename="outputs/data/residuals.csv"):
+            os.makedirs("outputs/data", exist_ok=True)
             residuals = y_true - y_pred
             residual_df = pd.DataFrame({
                 "Actual": y_true,
@@ -1626,7 +1624,8 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
             r2 = r2_score(y_test, y_pred)
             print(f"MAE: {mae:.2f} | MSE: {mse:.2f} | R²: {r2:.2f}")
 
-            joblib.dump(best_model, "trained_gbm_model_tuned.pkl")
+            os.makedirs("outputs/models", exist_ok=True)
+            joblib.dump(best_model, "outputs/models/trained_gbm_model_tuned.pkl")
                 
             train_preds = best_model.predict(X_train)
             r2_train = r2_score(y_train, train_preds)
@@ -1671,7 +1670,8 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
                 save_residuals_report(y_test, y_pred)
 
             # ------------------ Save Final Model ------------------
-            joblib.dump(final_model, "final_model.pkl")
+            os.makedirs("outputs/models", exist_ok=True)
+            joblib.dump(final_model, "outputs/models/final_model.pkl")
             with open("model_type.txt", "w") as f:
                 f.write(used_model_type)
             test_metrics = {
@@ -1762,7 +1762,8 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
             best_rf = search.best_estimator_
         
             train_preds = best_rf.predict(X_train)
-            joblib.dump(best_rf, "best_rf_model.pkl")
+            os.makedirs("outputs/models", exist_ok=True)
+            joblib.dump(best_rf, "outputs/models/best_rf_model.pkl")
 
             
             r2 = r2_score(y_train, train_preds)
@@ -1798,9 +1799,11 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
             # ------------------ Segment-wise Analysis ------------------
         #both at the end of file
         #--------------------end of feture analysis-------------------------------------------------------
-            joblib.dump(best_rf, "best_rf_model.pkl")
+            os.makedirs("outputs/models", exist_ok=True)
+            joblib.dump(best_rf, "outputs/models/best_rf_model.pkl")
 
-            with open("best_rf_metrics.json", "w") as f:
+            os.makedirs("outputs/metrics", exist_ok=True)
+            with open("outputs/metrics/best_rf_metrics.json", "w") as f:
                 json.dump({
                     "r2": round(r2, 4),
                     "mae": round(mae, 4),
@@ -2025,14 +2028,16 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
             }
 
 
-            joblib.dump(automl, "fallback_flaml_model.pkl")
+            os.makedirs("outputs/models", exist_ok=True)
+            joblib.dump(automl, "outputs/models/fallback_flaml_model.pkl")
 
             print("\n📉 Fallback Model Performance:")
             print(f"   - Test R²:  {test_metrics['r2']}")
             print(f"   - MAE:      {test_metrics['mae']}")
             print(f"   - RMSE:     {test_metrics['rmse']}")
 
-            with open("fallback_flaml_metrics.json", "w") as f:
+            os.makedirs("outputs/metrics", exist_ok=True)
+            with open("outputs/metrics/fallback_flaml_metrics.json", "w") as f:
                 json.dump({
                     "train_metrics": train_metrics,
                     "test_metrics": test_metrics,
@@ -2091,11 +2096,11 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
 
         # Load SHAP top 5 if it exists
         shap_top5 = {}
-        if os.path.exists("rf_shap_importance.json"):
-            with open("rf_shap_importance.json") as f:
+        if os.path.exists("outputs/metrics/rf_shap_importance.json"):
+            with open("outputs/metrics/rf_shap_importance.json") as f:
                 shap_top5 = json.load(f)
-        elif os.path.exists("gbm_shap_importance.json"):
-            with open("gbm_shap_importance.json") as f:
+        elif os.path.exists("outputs/metrics/gbm_shap_importance.json"):
+            with open("outputs/metrics/gbm_shap_importance.json") as f:
                 shap_top5 = json.load(f)
 
         # Decide final metrics to store
@@ -2119,11 +2124,12 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
             "shap_top_5": shap_top5
         }
 
-        with open("final_model_summary.json", "w") as f:
+        os.makedirs("outputs/metrics", exist_ok=True)
+        with open("outputs/metrics/final_model_summary.json", "w") as f:
             json.dump(final_summary, f, indent=4)
 
-        print("\n📁 Final model saved to: final_model.pkl")
-        print("📄 Final summary saved to: final_model_summary.json")
+        print("\n📁 Final model saved to: outputs/models/final_model.pkl")
+        print("📄 Final summary saved to: outputs/metrics/final_model_summary.json")
 
         def run_full_analysis(model, X_train, y_train, X_test, y_test, model_name):
 
@@ -2144,7 +2150,7 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
 
 
             # Create folder for plots if it doesn't exist
-            os.makedirs(f"plots/segments_{model_name}", exist_ok=True)
+            os.makedirs(f"outputs/plots/segments_{model_name}", exist_ok=True)
 
             for col in segment_columns:
                 if col not in df_full.columns:
@@ -2172,7 +2178,7 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
                 plt.title(f"Segment-wise MAE for {col} ({model_name})")
                 plt.xticks(rotation=45, ha='right')
                 plt.tight_layout()
-                plt.savefig(f"plots/segments_{model_name}/segment_{col}_mae.png")
+                plt.savefig(f"outputs/plots/segments_{model_name}/segment_{col}_mae.png")
                 plt.close()
                 # =================== AFTER SEGMENT LOOP COMPLETES ===================
 
@@ -2186,7 +2192,8 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
                     plt.title("Test: Actual vs Predicted")
                     plt.grid(True)
                     plt.tight_layout()
-                    plt.savefig(f"plots/test_actual_vs_pred_{model_name}.png")
+                    os.makedirs("outputs/plots", exist_ok=True)
+                    plt.savefig(f"outputs/plots/test_actual_vs_pred_{model_name}.png")
                     plt.close()
 
                     test_residuals = y_test - test_preds
@@ -2198,7 +2205,8 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
                     plt.title("Test: Residual Plot")
                     plt.grid(True)
                     plt.tight_layout()
-                    plt.savefig(f"plots/test_residual_{model_name}.png")
+                    os.makedirs("outputs/plots", exist_ok=True)
+                    plt.savefig(f"outputs/plots/test_residual_{model_name}.png")
                     plt.close()
                     print("✅ Residual and Actual-vs-Predicted plots saved.")
                 except Exception as e:
@@ -2229,9 +2237,10 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
                 all_segment_results[col] = results
 
             # At the end of run_full_analysis, save all_segment_results to a json file:
-            with open(f"segment_analysis_{model_name}.json", "w") as f:
+            os.makedirs("outputs/metrics", exist_ok=True)
+            with open(f"outputs/metrics/segment_analysis_{model_name}.json", "w") as f:
                 json.dump(all_segment_results, f, indent=4)
-            print(f"\n📄 Segment-wise analysis saved to 'segment_analysis_{model_name}.json'.")
+            print(f"\n📄 Segment-wise analysis saved to 'outputs/metrics/segment_analysis_{model_name}.json'.")
 
 
         #=========================end of segment analysis====================================================
@@ -2261,9 +2270,10 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
                     plt.title("Feature Importance")
                     plt.tight_layout()
                     os.makedirs("plots", exist_ok=True)
-                    plt.savefig(f"plots/feature_importance_{model_name}.png")
+                    os.makedirs("outputs/plots", exist_ok=True)
+                    plt.savefig(f"outputs/plots/feature_importance_{model_name}.png")
                     plt.close()
-                    print(f"💾 Feature importance plot saved to plots/feature_importance_{model_name}.png")
+                    print(f"💾 Feature importance plot saved to outputs/plots/feature_importance_{model_name}.png")
             except AttributeError:
                     print("⚠️ Skipping feature importance — model does not support feature_importances_")
 
@@ -2285,9 +2295,10 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
                 shap.summary_plot(shap_values, X_sampled, show=False)
                 plt.tight_layout()
                 os.makedirs("plots", exist_ok=True)
-                plt.savefig(f"plots/shap_summary_{model_name}.png")
+                os.makedirs("outputs/plots", exist_ok=True)
+                plt.savefig(f"outputs/plots/shap_summary_{model_name}.png")
                 plt.close()
-                print(f"\n💾 SHAP summary plot saved to plots/shap_summary_{model_name}.png")
+                print(f"\n💾 SHAP summary plot saved to outputs/plots/shap_summary_{model_name}.png")
 
                 # Always show both text and tabular SHAP insights
                 mean_abs_shap = np.abs(shap_values).mean(axis=0)
@@ -2307,10 +2318,11 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
                 print(tabulate(shap_df.head(5), headers='keys', tablefmt='fancy_grid'))
 
                 # Save to JSON
+                os.makedirs("outputs/metrics", exist_ok=True)
                 top_5_shap = shap_df.head(5).set_index("Feature")["Mean |SHAP|"].to_dict()
-                with open(f"{model_name}_shap_importance.json", "w") as f:
+                with open(f"outputs/metrics/{model_name}_shap_importance.json", "w") as f:
                     json.dump(top_5_shap, f, indent=4)
-                print(f"\n💾 Saved top 5 SHAP features to {model_name}_shap_importance.json")
+                print(f"\n💾 Saved top 5 SHAP features to outputs/metrics/{model_name}_shap_importance.json")
 
             except Exception as e:
                 print("\n⚠️ SHAP analysis failed gracefully. Continuing without SHAP.")
@@ -2322,8 +2334,8 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
             conflicts = []
 
             # === 1. Load SHAP scores ===
-            if os.path.exists(f"{model_name}_shap_importance.json"):
-                with open(f"{model_name}_shap_importance.json") as f:
+            if os.path.exists(f"outputs/metrics/{model_name}_shap_importance.json"):
+                with open(f"outputs/metrics/{model_name}_shap_importance.json") as f:
                     shap_scores = json.load(f)
             else:
                 shap_scores = {}
@@ -2382,7 +2394,7 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
 
                 # === Optional Visual Diagnostics for Conflict Features ===
                 print("\n🖼️ Visualizing conflicting features and checking collinearity...")
-                os.makedirs("plots/conflict_analysis", exist_ok=True)
+                os.makedirs("outputs/plots/conflict_analysis", exist_ok=True)
 
                 for c in conflicts:
                     feature = c["feature"]
@@ -2398,7 +2410,7 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
                             plt.xlabel(feature)
                             plt.ylabel("Target")
                             plt.tight_layout()
-                            plt.savefig(f"plots/conflict_analysis/{feature}_scatter.png")
+                            plt.savefig(f"outputs/plots/conflict_analysis/{feature}_scatter.png")
                             plt.close()
                         else:
                             plt.figure(figsize=(6,4))
@@ -2407,7 +2419,7 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
                             plt.xlabel(feature)
                             plt.ylabel("Target")
                             plt.tight_layout()
-                            plt.savefig(f"plots/conflict_analysis/{feature}_boxplot.png")
+                            plt.savefig(f"outputs/plots/conflict_analysis/{feature}_boxplot.png")
                             plt.close()
                     except Exception as e:
                         print(f"⚠️ Failed to plot for {feature}: {e}")
@@ -2448,34 +2460,35 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
         try:
             print("🔍 Debug: About to call generate_training_report_with_api...")
             report_text = generate_training_report_with_api(
-                summary_path="final_model_summary.json",
-                segment_path=f"segment_analysis_{used_model_type}.json",
-                shap_path=f"{used_model_type}_shap_importance.json",
-                predictions_path="residuals.csv"  # Always use this file
+                summary_path="outputs/metrics/final_model_summary.json",
+                segment_path=f"outputs/metrics/segment_analysis_{used_model_type}.json",
+                shap_path=f"outputs/metrics/{used_model_type}_shap_importance.json",
+                predictions_path="outputs/data/residuals.csv"  # Always use this file
             )
             print(f"🔍 Debug: generate_training_report_with_api returned: {type(report_text)}")
-            with open("auto_training_report.txt", "w", encoding="utf-8") as f:
+            os.makedirs("outputs/reports", exist_ok=True)
+            with open("outputs/reports/auto_training_report.txt", "w", encoding="utf-8") as f:
                 f.write(report_text)
-            print("\n✅ Auto analysis report saved to 'auto_training_report.txt'.")
+            print("\n✅ Auto analysis report saved to 'outputs/reports/auto_training_report.txt'.")
             print("🔍 Debug: Auto training report completed successfully")
             print("🔍 Debug: About to start epic final report generation...")
             print("🔍 Debug: This line should appear")
             
             # Global sections definition
             sections = [
-                ("Model Summary", "final_model_summary.json"),
-                ("Segment-wise Analysis", f"segment_analysis_{used_model_type}.json"),
-                ("SHAP Feature Importance", f"{used_model_type}_shap_importance.json"),
-                ("Sample Predictions", "residuals.csv"),
-                ("Auto Training Report", "auto_training_report.txt"),
-                ("Pattern Analysis", "data_processing/final_pattern_report.txt"),
-                ("Chi-Square Test Summary", "data_processing/chi_square_summary.txt"),
-                ("ANOVA Summary", "data_processing/anova_summary.txt"),
-                ("Pearson/Spearman Correlation", "data_processing/pearson_spearman_summary.txt"),
-                ("Cramér's V Summary", "data_processing/cramers_v_summary.txt"),
-                ("Outlier Report", "data_processing/outlier_report.txt"),
-                ("Time Trend Report", "data_processing/time_trend_summary.txt"),
-                ("Graph Summaries", "data_processing/graph_descriptions.txt"),
+                ("Model Summary", "outputs/metrics/final_model_summary.json"),
+                ("Segment-wise Analysis", f"outputs/metrics/segment_analysis_{used_model_type}.json"),
+                ("SHAP Feature Importance", f"outputs/metrics/{used_model_type}_shap_importance.json"),
+                ("Sample Predictions", "outputs/data/residuals.csv"),
+                ("Auto Training Report", "outputs/reports/auto_training_report.txt"),
+                ("Pattern Analysis", "outputs/reports/final_pattern_report.txt"),
+                ("Chi-Square Test Summary", "outputs/reports/chi_square_summary.txt"),
+                ("ANOVA Summary", "outputs/reports/anova_summary.txt"),
+                ("Pearson/Spearman Correlation", "outputs/reports/pearson_spearman_summary.txt"),
+                ("Cramér's V Summary", "outputs/reports/cramers_v_summary.txt"),
+                ("Outlier Report", "outputs/reports/outlier_report.txt"),
+                ("Time Trend Report", "outputs/reports/time_trend_summary.txt"),
+                ("Graph Summaries", "outputs/reports/graph_descriptions.txt"),
             ]
 
             print("\n📊 Generating comprehensive final analysis report for business users...")
@@ -2545,12 +2558,12 @@ def run_terminal_predictions():
     def find_column_types():
         """Find column types from your data cleaning system"""
         type_files = [
+            "outputs/data/user_column_types.json",  # New location - user-confirmed types
             "user_column_types.json",    # User-confirmed types
-            "../user_column_types.json", # When running from pihu folder
+            "outputs/data/final_column_types.json",  # New location - final types
             "final_column_types.json",   # Final types from cleaning
-            "../final_column_types.json", # When running from pihu folder
             "streamlit_app/final_column_types.json",  # Alternative location
-            "final_column_types.json",   # When running from pihu folder
+            "../data_processing/final_column_types.json",  # Legacy location
         ]
         
         for type_file in type_files:
@@ -2612,8 +2625,8 @@ def run_terminal_predictions():
         encoders = {}
         category_options = {}
         
-        # Try multiple encoder directory locations
-        encoder_dirs = ["data_processing/encoders", "../data_processing/encoders", "encoders", "../encoders", "./encoders"]
+        # Try multiple encoder directory locations (check new location first, then fallback to old)
+        encoder_dirs = ["outputs/encoders", "data_processing/encoders", "../data_processing/encoders", "encoders", "../encoders", "./encoders"]
         encoders_dir = None
         
         for dir_path in encoder_dirs:
