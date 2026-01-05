@@ -1423,7 +1423,8 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
             raise ValueError(f"❌ Target column '{target_col}' not found in the dataset.")
 
         # Save the target column config
-        with open("data_processing/target_config.json", "w") as f:
+        os.makedirs("outputs/data", exist_ok=True)
+        with open("outputs/data/target_config.json", "w") as f:
             json.dump({"target_column": target_col}, f)
 
         # --- STEP 1: Convert boolean-like columns to 0/1 ---
@@ -1465,12 +1466,25 @@ def run_model_training_only(cleaned_csv_path="datasets/cleaned_input.csv", targe
         print("🧠 LabelEncoders saved in 'encoders/' folder.")
 
         #========================train-test-split=======================================
-        df = pd.read_csv("data_processing/encoded_input.csv")
+        # Sanitize column names on the existing dataframe (no need to reload)
         df.columns = [sanitize_column_name(col) for col in df.columns]
 
         # Load target column from earlier saved config
-        with open("data_processing/target_config.json", "r") as f:
-            target_col = json.load(f)["target_column"]
+        # Try new location first, then fallback to old location for compatibility
+        target_config_paths = [
+            "outputs/data/target_config.json",
+            "data_processing/target_config.json"
+        ]
+        target_col = None
+        for config_path in target_config_paths:
+            try:
+                with open(config_path, "r") as f:
+                    target_col = json.load(f)["target_column"]
+                    break
+            except FileNotFoundError:
+                continue
+        if target_col is None:
+            raise FileNotFoundError("target_config.json not found in any expected location")
 
         if target_col not in df.columns:
             print(f"❌ Target column '{target_col}' not found in the dataset. Exiting.")
