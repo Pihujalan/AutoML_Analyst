@@ -1,0 +1,101 @@
+############################
+# Secrets & credentials
+############################
+.env
+.env.*
+creds.json
+*.key
+
+############################
+# Python cache & artifacts
+############################
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+############################
+# Virtual environments
+############################
+venv/
+env/
+ENV/
+
+############################
+# Model artifacts (generated)
+############################
+*.pkl
+*.joblib
+*.h5
+*.pb
+*.onnx
+*.pt
+*.pth
+
+############################
+# Data (generated)
+############################
+data/processed/
+datasets/*
+!datasets/.gitkeep
+streamlit_app/data/
+streamlit_app/datasets/
+*.csv
+# But keep .gitkeep files to preserve directory structure
+!.gitkeep
+!**/.gitkeep
+
+############################
+# Keep ONLY example data
+############################
+!data/raw/*.csv
+
+############################
+# Reports & logs (generated)
+############################
+*.log
+logs/
+*_report.txt
+*_summary.txt
+auto_training_report.txt
+epic_final_report.txt
+business_insights_prompt.txt
+
+############################
+# Metrics & analysis outputs
+############################
+*_metrics.json
+*_importance.json
+segment_analysis_*.json
+residuals.csv
+
+############################
+# Plots
+############################
+plots/
+!plots/.gitkeep
+outputs/
+!outputs/.gitkeep
+!outputs/**/.gitkeep
+
+############################
+# IDE & OS
+############################
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+############################
+# Distribution
+############################
+dist/
+build/
+*.egg-info/
+
