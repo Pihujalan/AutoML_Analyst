@@ -80,8 +80,8 @@ if not st.session_state.confirmed:
             df = pd.read_csv(uploaded_file)
             st.session_state.df = df
 
-            os.makedirs("data", exist_ok=True)
-            df.to_csv("datasets/input.csv", index=False)
+            os.makedirs("outputs/data", exist_ok=True)
+            df.to_csv("outputs/data/input.csv", index=False)
 
             st.success(" File uploaded and saved successfully.")
             st.subheader("Preview of your data:")
@@ -134,8 +134,8 @@ if not st.session_state.confirmed:
                     df = pd.read_csv(csv_url)
                     st.session_state.df = df
 
-                    os.makedirs("data", exist_ok=True)
-                    df.to_csv("datasets/input.csv", index=False)
+                    os.makedirs("outputs/data", exist_ok=True)
+                    df.to_csv("outputs/data/input.csv", index=False)
 
                     st.success(" Google Sheet fetched and saved successfully.")
                     st.subheader("Preview of your data:")
@@ -183,7 +183,8 @@ if st.session_state.confirmed and st.session_state.df is not None:
     st.dataframe(df.head(10))
     
     # Download cleaned CSV button - show immediately after cleaning
-    cleaned_path = "datasets/cleaned_input.csv"
+    os.makedirs("outputs/data", exist_ok=True)
+    cleaned_path = "outputs/data/cleaned_input.csv"
     df.to_csv(cleaned_path, index=False)
     with open(cleaned_path, "rb") as f:
         st.download_button(
@@ -281,9 +282,15 @@ if st.session_state.confirmed and st.session_state.df is not None:
                     # Apply user types to DataFrame and update both JSON files
                     df = apply_user_types(df, user_types)
                     # Save to user_column_types.json (for analysis functions)
+                    os.makedirs("outputs/data", exist_ok=True)
+                    with open("outputs/data/user_column_types.json", "w") as f:
+                        json.dump(user_types, f, indent=2)
+                    # Also save to root for backward compatibility
                     with open("user_column_types.json", "w") as f:
                         json.dump(user_types, f, indent=2)
                     # Save to final_column_types.json (for backward compatibility)
+                    with open("outputs/data/final_column_types.json", "w") as f:
+                        json.dump(user_types, f, indent=2)
                     with open("final_column_types.json", "w") as f:
                         json.dump(user_types, f, indent=2)
                     st.success("Data types confirmed! You can now proceed to analytics below.")
@@ -361,7 +368,12 @@ if st.session_state.confirmed and st.session_state.df is not None:
                         # Use current logic_guesses as user_column_types
                         st.session_state['user_column_types'] = logic_guesses
                         # Save current types to files for analysis functions
+                        os.makedirs("outputs/data", exist_ok=True)
+                        with open("outputs/data/user_column_types.json", "w") as f:
+                            json.dump(logic_guesses, f, indent=2)
                         with open("user_column_types.json", "w") as f:
+                            json.dump(logic_guesses, f, indent=2)
+                        with open("outputs/data/final_column_types.json", "w") as f:
                             json.dump(logic_guesses, f, indent=2)
                         with open("final_column_types.json", "w") as f:
                             json.dump(logic_guesses, f, indent=2)
@@ -375,9 +387,14 @@ if st.session_state.confirmed and st.session_state.df is not None:
                         st.session_state['user_column_types'] = logic_guesses
                         df = apply_user_types(df, logic_guesses)
                         # Save to user_column_types.json (for analysis functions)
+                        os.makedirs("outputs/data", exist_ok=True)
+                        with open("outputs/data/user_column_types.json", "w") as f:
+                            json.dump(logic_guesses, f, indent=2)
                         with open("user_column_types.json", "w") as f:
                             json.dump(logic_guesses, f, indent=2)
                         # Save to final_column_types.json (for backward compatibility)
+                        with open("outputs/data/final_column_types.json", "w") as f:
+                            json.dump(logic_guesses, f, indent=2)
                         with open("final_column_types.json", "w") as f:
                             json.dump(logic_guesses, f, indent=2)
                         st.session_state['show_analytics'] = True
@@ -393,7 +410,8 @@ if st.session_state.confirmed and st.session_state.df is not None:
 if st.session_state.get('user_column_types') and st.session_state.get('confirmed') and st.session_state.get('df') is not None:
     user_types = st.session_state['user_column_types']
     df = apply_user_types(st.session_state.df.copy(), user_types)
-    cleaned_csv_path = "datasets/cleaned_input.csv"
+    os.makedirs("outputs/data", exist_ok=True)
+    cleaned_csv_path = "outputs/data/cleaned_input.csv"
     df.to_csv(cleaned_csv_path, index=False)
     # Target column selection BEFORE pipeline run
     EXCLUDE_COLS = {'Unnamed: 0', 'id', 'ID', 'index'}
@@ -450,8 +468,20 @@ if st.session_state.get('run_pipeline', False) and st.session_state.get('show_an
                 use_percentile_limit=st.session_state.get('use_percentile_limit', True)
             )
         st.success("Pattern analysis complete!")
-        if os.path.exists("data_processing/final_pattern_report.txt"):
-            display_report("data_processing/final_pattern_report.txt")
+        # Check new location first, then fallback to old locations
+        report_paths = [
+            "outputs/reports/final_pattern_report.txt",
+            "data_processing/final_pattern_report.txt",
+            "streamlit_app/data_processing/final_pattern_report.txt"
+        ]
+        report_found = False
+        for report_path in report_paths:
+            if os.path.exists(report_path):
+                display_report(report_path)
+                report_found = True
+                break
+        if not report_found:
+            st.info("Pattern analysis report not yet available. Run the analysis first.")
         # Start model training in background
         st.warning("Model training started in background... Please wait.")
         target_col_value = st.session_state.get('target_col')  # Get the value before starting thread
