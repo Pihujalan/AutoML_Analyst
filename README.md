@@ -90,25 +90,67 @@ Perfect for data analysts, business teams, and anyone who needs quick, reliable 
 
 ```
 AutoML_Analyst/
-├── data_processing/          # Data cleaning and preprocessing modules
-│   ├── dataCleaning.py       # Main data cleaning logic
-│   ├── encodeData.py         # Data encoding utilities
-│   ├── patternDiscovery.py   # Pattern analysis functions
-│   └── encoders/             # Encoder storage directory
-├── streamlit_app/           # Streamlit web interface
-│   └── streamlit_interface.py # Main Streamlit application
-├── ml/                      # Machine learning models and training
-│   ├── fullmodel.py         # Complete AutoML pipeline
-│   ├── rf.py                # Random Forest implementation
-│   └── rfauto.py            # Automated Random Forest
-├── datasets/                # Data storage directory
-├── mixtral_integration.py   # AI-powered business intelligence
-├── merged_pattern_analysis.py # Advanced pattern analysis
-├── model_training.py        # Model training utilities
-├── test_predictions.py      # Prediction testing utilities
-├── requirements.txt         # Python dependencies
-├── env_example.txt          # Environment variables template
-└── README.md               # This file
+├── data_processing/                 # Core data cleaning & preprocessing modules
+│   ├── dataCleaning.py              # Data cleaning and validation logic
+│   ├── encodeData.py                # Feature encoding utilities
+│   ├── load_dataset.py              # Dataset loading helpers
+│   ├── missingPatternAnalysis.py    # Missing-value pattern analysis
+│   ├── train_test_split.py          # Train-test splitting logic
+│   └── __init__.py
+│
+├── ml/                              # Machine learning & AutoML pipeline
+│   ├── fullmodel.py                 # End-to-end AutoML training pipeline
+│   ├── rf.py                        # Random Forest model implementation
+│   ├── rfauto.py                    # Automated Random Forest tuning
+│   └── __pycache__/
+│
+├── streamlit_app/                   # Streamlit-based web application
+│   ├── streamlit_interface.py       # Main Streamlit UI & orchestration
+│   ├── data_processing/             # App-level intermediate data artifacts
+│   │   ├── X_train.csv
+│   │   ├── X_test.csv
+│   │   ├── Y_train.csv
+│   │   ├── Y_test.csv
+│   │   └── target_config.json
+│   │
+│   ├── outputs/                     # Generated outputs from training & analysis
+│   │   ├── data/                    # Cleaned & encoded datasets
+│   │   │   ├── input.csv
+│   │   │   ├── cleaned_input.csv
+│   │   │   └── encoded_input.csv
+│   │   │
+│   │   ├── models/                  # Trained ML models
+│   │   │   ├── best_rf_model.pkl
+│   │   │   ├── final_model.pkl
+│   │   │   └── trained_gbm_model_tuned.pkl
+│   │   │
+│   │   ├── encoders/                # Saved encoders for inference
+│   │   │   ├── region_encoder.pkl
+│   │   │   ├── sex_encoder.pkl
+│   │   │   └── smoker_encoder.pkl
+│   │   │
+│   │   ├── metrics/                 # Model metrics & summaries
+│   │   │   ├── best_rf_metrics.json
+│   │   │   └── final_model_summary.json
+│   │   │
+│   │   ├── plots/                   # Visualizations & SHAP plots
+│   │   │   ├── feature_importance_gbm.png
+│   │   │   └── shap_summary_gbm.png
+│   │   │
+│   │   └── reports/                 # Textual analytical reports
+│   │       └── graph_descriptions.txt
+│
+├── tests/                           # Testing & legacy validation data
+│   └── legacy_test_data/
+│       └── encoders/
+│
+├── mixtral_integration.py           # LLM-based business intelligence generation
+├── model_training.py                # Standalone training utilities
+├── requirements.txt                 # Python dependencies
+├── env_example.txt                  # Environment variable template
+├── LICENSE
+└── README.md                        # Project documentation
+
 ```
 
 ---
@@ -372,8 +414,6 @@ Special thanks to the open-source community for making this project possible.
 
 ## Support & Contact
 
-- **Documentation**: [Full docs available here](docs/)
-- **Issues**: [Report bugs on GitHub](https://github.com/yourusername/automl-analyst/issues)
 - **Email**: support@automl-analyst.com
 
 ---
