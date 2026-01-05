@@ -2,7 +2,7 @@
   "age": "Numeric",
   "sex": "Category",
   "bmi": "Numeric",
-  "children": "Numeric",
+  "children": "Category",
   "smoker": "Category",
   "region": "Category",
   "charges": "Numeric"
